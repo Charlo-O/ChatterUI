@@ -1,0 +1,146 @@
+{
+    "common": {
+        "tryAgain": "Try Again",
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "search": "Search",
+        "settings": "Settings",
+        "about": "About",
+        "close": "Close",
+        "ok": "OK",
+        "yes": "Yes",
+        "no": "No",
+        "name": "Name",
+        "description": "Description",
+        "namePlaceholder": "Name...",
+        "enterName": "Enter Name",
+        "discardChanges": "Discard Changes",
+        "changeImage": "Change Image",
+        "viewImage": "View Image",
+        "deleteImage": "Delete Image",
+        "githubRepository": "Github Repository"
+    },
+    "auth": {
+        "authenticationRequired": "Authentication Required",
+        "tryAgain": "Try Again"
+    },
+    "database": {
+        "migrationFailed": "Database Migration Failed!"
+    },
+    "characters": {
+        "noCharactersFound": "No Characters Found. Try Importing Some!",
+        "noCharactersSearch": "No characters match your search",
+        "importCharacters": "Import Characters",
+        "createCharacter": "Create Character",
+        "characterName": "Character Name",
+        "characterDescription": "Character Description",
+        "characterTags": "Character Tags",
+        "characterAvatar": "Character Avatar",
+        "characterPersonality": "Character Personality",
+        "characterInstructions": "Character Instructions",
+        "characterExampleConversation": "Example Conversation",
+        "editCharacter": "Edit Character",
+        "deleteCharacter": "Delete Character",
+        "firstMessage": "First Message",
+        "personality": "Personality",
+        "scenario": "Scenario",
+        "exampleMessages": "Example Messages",
+        "tags": "Tags",
+        "cardSaved": "Card Saved!",
+        "enterCharacterLink": "Enter Character Hub or Pygmalion Link",
+        "filterTags": "Filter Tags...",
+        "searchName": "Search Name...",
+        "download": "Download",
+        "importFromFile": "Import From File",
+        "sortBy": "Sort By",
+        "recent": "Recent",
+        "noTagsUsed": "<No Tags Used>",
+        "results": "Results",
+        "createNewCharacter": "Create New Character"
+    },
+    "chat": {
+        "newChat": "New Chat",
+        "sendMessage": "Send Message",
+        "typeMessage": "Type a message...",
+        "chatHistory": "Chat History",
+        "clearChat": "Clear Chat",
+        "exportChat": "Export Chat",
+        "importChat": "Import Chat"
+    },
+    "settings": {
+        "appSettings": "App Settings",
+        "chatSettings": "Chat Settings",
+        "characterSettings": "Character Settings",
+        "modelSettings": "Model Settings",
+        "ttsSettings": "TTS Settings",
+        "notificationSettings": "Notification Settings",
+        "securitySettings": "Security Settings",
+        "styleSettings": "Style Settings",
+        "screenSettings": "Screen Settings",
+        "databaseSettings": "Database Settings",
+        "generatingSettings": "Generating Settings",
+        "themes": "Themes",
+        "autoScroll": "Auto Scroll",
+        "autoScrollDescription": "Autoscrolls text during generations",
+        "useFirstMessage": "Use First Message",
+        "useFirstMessageDescription": "Disabling this will make new chats start blank, needed by specific models",
+        "lockApp": "Lock App",
+        "lockAppDescription": "Requires user authentication to open the app. This will not work if you have no device locks enabled.",
+        "loadChatOnStartup": "Load Chat on Startup",
+        "loadChatOnStartupDescription": "Load the most recent chat on startup",
+        "autoLoadUser": "Auto Load User",
+        "autoLoadUserDescription": "When opening a chat, automatically load the user who created the chat",
+        "sendOnEnter": "Send on Enter",
+        "sendOnEnterDescription": "Submit message when pressing Enter key",
+        "showTokensPerSecond": "Show Tokens/Second",
+        "showTokensPerSecondDescription": "Show tokens per second when using local models"
+    },
+    "menu": {
+        "sampler": "Sampler",
+        "formatting": "Formatting",
+        "api": "API",
+        "models": "Models",
+        "tts": "TTS",
+        "logs": "Logs",
+        "about": "About",
+        "settings": "Settings",
+        "mainMenu": "Main Menu"
+    },
+    "dev": {
+        "devBuild": "DEV BUILD",
+        "devMode": "DEV MODE",
+        "components": "[DEV] Components",
+        "colorTest": "[DEV] ColorTest",
+        "markdown": "[DEV] Markdown",
+        "disableDevMode": "Disable Dev Mode"
+    },
+    "errors": {
+        "generalError": "An error occurred",
+        "networkError": "Network error",
+        "fileError": "File error",
+        "permissionError": "Permission denied",
+        "errorDeletingSwipe": "Error deleting swipe",
+        "importingNotImplemented": "Importing Not Implemented"
+    },
+    "validation": {
+        "nameCannotBeEmpty": "Name cannot be empty",
+        "emptyNameDiscouraged": "Empty names are discouraged!"
+    },
+    "user": {
+        "describeUser": "Describe this user..."
+    },
+    "sampler": {
+        "downloadedConfiguration": "Downloaded Sampler Configuration!"
+    },
+    "about": {
+        "description": "ChatterUI is a free and open-source application developed by Vali-98",
+        "supportMessage": "This app is a passion project I develop in my free time. If you're enjoying the app, consider supporting its development!",
+        "donateMessage": "Donate to ChatterUI here:",
+        "reportIssue": "Got an issue? Report it here:",
+        "reportIssueNote": "(Don't forget to add your Logs!)"
+    }
+} 

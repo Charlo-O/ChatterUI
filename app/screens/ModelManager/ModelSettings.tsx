@@ -1,14 +1,17 @@
-import Alert from '@components/views/Alert'
+import ThemedButton from '@components/buttons/ThemedButton'
+import ThemedSlider from '@components/input/ThemedSlider'
+import ThemedSwitch from '@components/input/ThemedSwitch'
 import SectionTitle from '@components/text/SectionTitle'
-import SliderInput from '@components/input/SliderInput'
-import SwitchTitle from '@components/input/SwitchTitle'
-import SwitchWithDescription from '@components/input/SwitchWithDescription'
-import { AppSettings, Global, Logger, Style } from '@lib/utils/Global'
-import { Llama, LlamaPreset, readableFileSize } from '@lib/engine/LlamaLocal'
+import Alert from '@components/views/Alert'
+import { AppSettings } from '@lib/constants/GlobalValues'
+import { Llama } from '@lib/engine/Local/LlamaLocal'
+import { KV } from '@lib/engine/Local/Model'
+import { Logger } from '@lib/state/Logger'
+import { readableFileSize } from '@lib/utils/File'
 import { useFocusEffect } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { BackHandler, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useMMKVBoolean, useMMKVObject } from 'react-native-mmkv'
+import { BackHandler, Platform, View } from 'react-native'
+import { useMMKVBoolean } from 'react-native-mmkv'
 import Animated, { Easing, SlideInRight, SlideOutRight } from 'react-native-reanimated'
 
 type ModelSettingsProp = {
@@ -17,23 +20,20 @@ type ModelSettingsProp = {
     exit: () => void
 }
 
-type CPUFeatures = {
-    armv8: boolean
-    dotprod: boolean
-    i8mm: boolean
-}
-
 const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoading, exit }) => {
-    const [preset, setPreset] = useMMKVObject<LlamaPreset>(Global.LocalPreset)
-    const [cpuFeatures, setCpuFeatures] = useMMKVObject<CPUFeatures>(Global.CpuFeatures)
+    const { config, setConfig } = Llama.useEngineData((state) => ({
+        config: state.config,
+        setConfig: state.setConfiguration,
+    }))
 
     const [saveKV, setSaveKV] = useMMKVBoolean(AppSettings.SaveLocalKV)
     const [autoloadLocal, setAutoloadLocal] = useMMKVBoolean(AppSettings.AutoLoadLocal)
+    const [showModelInChat, setShowModelInChat] = useMMKVBoolean(AppSettings.ShowModelInChat)
 
     const [kvSize, setKVSize] = useState(0)
 
     const getKVSize = async () => {
-        const size = await Llama.getKVSize()
+        const size = await KV.getKVSize()
         setKVSize(size)
     }
 
@@ -60,8 +60,8 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
                 {
                     label: 'Delete KV Cache',
                     onPress: async () => {
-                        await Llama.deleteKV()
-                        Logger.log('KV Cache deleted!', true)
+                        await KV.deleteKV()
+                        Logger.info('KV Cache deleted!')
                         getKVSize()
                     },
                     type: 'warning',
@@ -78,31 +78,31 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
             exiting={SlideOutRight.easing(Easing.inOut(Easing.cubic))}>
             <SectionTitle>CPU Settings</SectionTitle>
             <View style={{ marginTop: 16 }} />
-            {preset && (
+            {config && (
                 <View>
-                    <SliderInput
+                    <ThemedSlider
                         label="Max Context"
-                        value={preset.context_length}
-                        onValueChange={(value) => setPreset({ ...preset, context_length: value })}
+                        value={config.context_length}
+                        onValueChange={(value) => setConfig({ ...config, context_length: value })}
                         min={1024}
                         max={32768}
                         step={1024}
                         disabled={modelImporting || modelLoading}
                     />
-                    <SliderInput
+                    <ThemedSlider
                         label="Threads"
-                        value={preset.threads}
-                        onValueChange={(value) => setPreset({ ...preset, threads: value })}
+                        value={config.threads}
+                        onValueChange={(value) => setConfig({ ...config, threads: value })}
                         min={1}
                         max={8}
                         step={1}
                         disabled={modelImporting || modelLoading}
                     />
 
-                    <SliderInput
+                    <ThemedSlider
                         label="Batch"
-                        value={preset.batch}
-                        onValueChange={(value) => setPreset({ ...preset, batch: value })}
+                        value={config.batch}
+                        onValueChange={(value) => setConfig({ ...config, batch: value })}
                         min={16}
                         max={512}
                         step={16}
@@ -110,10 +110,10 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
                     />
                     {/* Note: llama.rn does not have any Android gpu acceleration */}
                     {Platform.OS === 'ios' && (
-                        <SliderInput
+                        <ThemedSlider
                             label="GPU Layers"
-                            value={preset.gpu_layers}
-                            onValueChange={(value) => setPreset({ ...preset, gpu_layers: value })}
+                            value={config.gpu_layers}
+                            onValueChange={(value) => setConfig({ ...config, gpu_layers: value })}
                             min={0}
                             max={100}
                             step={1}
@@ -122,15 +122,20 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
                 </View>
             )}
             <SectionTitle>Advanced Settings</SectionTitle>
-            <SwitchTitle
-                title="Automatically Load Model on Chat"
-                value={autoloadLocal}
-                onValueChange={setAutoloadLocal}
+            <ThemedSwitch
+                label="Show Model Name In Chat"
+                value={showModelInChat}
+                onChangeValue={setShowModelInChat}
             />
-            <SwitchWithDescription
-                title="Save Local KV"
+            <ThemedSwitch
+                label="Automatically Load Model on Chat"
+                value={autoloadLocal}
+                onChangeValue={setAutoloadLocal}
+            />
+            <ThemedSwitch
+                label="Save Local KV"
                 value={saveKV}
-                onValueChange={setSaveKV}
+                onChangeValue={setSaveKV}
                 description={
                     saveKV
                         ? ''
@@ -138,17 +143,12 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
                 }
             />
             {saveKV && (
-                <TouchableOpacity
+                <ThemedButton
+                    buttonStyle={{ marginTop: 8 }}
+                    label={'Purge KV Cache (' + readableFileSize(kvSize) + ')'}
                     onPress={handleDeleteKV}
-                    disabled={kvSize === 0}
-                    style={kvSize === 0 ? styles.purgeButtonDisabled : styles.purgeButton}>
-                    <Text
-                        style={{
-                            color: Style.getColor(kvSize === 0 ? 'primary-text3' : 'primary-text1'),
-                        }}>
-                        Purge KV Cache {'(' + readableFileSize(kvSize) + ')'}
-                    </Text>
-                </TouchableOpacity>
+                    variant={kvSize === 0 ? 'disabled' : 'critical'}
+                />
             )}
         </Animated.ScrollView>
     )
@@ -156,40 +156,3 @@ const ModelSettings: React.FC<ModelSettingsProp> = ({ modelImporting, modelLoadi
 
 export default ModelSettings
 
-const styles = StyleSheet.create({
-    greenTag: {
-        color: Style.getColor('primary-text1'),
-        backgroundColor: Style.getColor('confirm-brand'),
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-    },
-
-    redTag: {
-        color: Style.getColor('primary-text1'),
-        backgroundColor: Style.getColor('destructive-brand'),
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingTop: 4,
-        paddingBottom: 8,
-    },
-
-    purgeButton: {
-        marginTop: 12,
-        backgroundColor: Style.getColor('destructive-brand'),
-        borderWidth: 1,
-        borderColor: Style.getColor('destructive-brand'),
-        alignItems: 'center',
-        paddingVertical: 8,
-        borderRadius: 12,
-    },
-
-    purgeButtonDisabled: {
-        marginTop: 12,
-        borderWidth: 1,
-        borderColor: Style.getColor('primary-text3'),
-        alignItems: 'center',
-        paddingVertical: 8,
-        borderRadius: 12,
-    },
-})

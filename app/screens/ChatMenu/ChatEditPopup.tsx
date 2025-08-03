@@ -1,31 +1,28 @@
 import Alert from '@components/views/Alert'
 import PopupMenu, { MenuRef } from '@components/views/PopupMenu'
 import TextBoxModal from '@components/views/TextBoxModal'
-import { Characters, Chats, Logger, saveStringToDownload } from '@lib/utils/Global'
+import { Characters } from '@lib/state/Characters'
+import { Chats } from '@lib/state/Chat'
+import { Logger } from '@lib/state/Logger'
+import { saveStringToDownload } from '@lib/utils/File'
 import React, { useState } from 'react'
 import { View } from 'react-native'
 
-type ListItem = {
-    id: number
-    character_id: number
-    create_date: Date
-    name: string
-    last_modified: null | number
-    entryCount: number
-}
-
 type ChatEditPopupProps = {
-    item: ListItem
-    nowLoading: boolean
-    setNowLoading: (b: boolean) => void
+    item: Awaited<ReturnType<typeof Chats.db.query.chatListQuery>>[0]
 }
 
-const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, setNowLoading, nowLoading }) => {
+const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item }) => {
     const [showRename, setShowRename] = useState<boolean>(false)
 
     const { charName, charId } = Characters.useCharacterCard((state) => ({
         charId: state.id,
         charName: state.card?.name ?? 'Unknown',
+    }))
+
+    const { userId, userName } = Characters.useUserCard((state) => ({
+        userId: state.id,
+        userName: state.card?.name,
     }))
 
     const { deleteChat, loadChat, chatId, unloadChat } = Chats.useChat()
@@ -47,7 +44,7 @@ const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, setNowLoading, nowL
                                 : await Chats.db.mutate.createChat(charId)
                             chatId && (await loadChat(chatId))
                         } else if (item.id === chatId) {
-                            Logger.log(`Something went wrong with creating a default chat`, true)
+                            Logger.errorToast(`Something went wrong with creating a default chat`)
                             unloadChat()
                         }
                         menuRef.current?.close()
@@ -79,7 +76,17 @@ const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, setNowLoading, nowL
         const name = `Chatlogs-${charName}-${item.id}.json`.replaceAll(' ', '_')
         await saveStringToDownload(JSON.stringify(await Chats.db.query.chat(item.id)), name, 'utf8')
         menuRef.current?.close()
-        Logger.log(`File: ${name} saved to downloads!`, true)
+        Logger.infoToast(`File: ${name} saved to downloads!`)
+    }
+
+    const handleLinkUser = async () => {
+        if (userId === item.user_id) return
+        if (!userId) {
+            Logger.errorToast('No current User')
+            return
+        }
+        await Chats.db.mutate.updateUser(item.id, userId)
+        Logger.errorToast(`Linked to User: ${userName}`)
     }
 
     return (
@@ -90,10 +97,10 @@ const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, setNowLoading, nowL
                     await Chats.db.mutate.renameChat(item.id, text)
                 }}
                 textCheck={(text) => text.length === 0}
+                defaultValue={item.name}
             />
             <PopupMenu
                 icon="edit"
-                disabled={nowLoading}
                 options={[
                     {
                         label: 'Rename',
@@ -112,6 +119,11 @@ const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, setNowLoading, nowL
                         label: 'Clone',
                         icon: 'copy1',
                         onPress: handleCloneChat,
+                    },
+                    {
+                        label: 'Link User',
+                        icon: 'user',
+                        onPress: handleLinkUser,
                     },
                     {
                         label: 'Delete',

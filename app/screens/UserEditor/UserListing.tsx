@@ -1,34 +1,34 @@
 import Alert from '@components/views/Alert'
 import Avatar from '@components/views/Avatar'
+import Drawer from '@components/views/Drawer'
 import PopupMenu from '@components/views/PopupMenu'
-import { Characters, Style } from '@lib/utils/Global'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { Characters } from '@lib/state/Characters'
+import { Theme } from '@lib/theme/ThemeManager'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Menu } from 'react-native-popup-menu'
 
 type CharacterData = Awaited<ReturnType<typeof Characters.db.query.cardListQuery>>[0]
 
 type CharacterListingProps = {
     user: CharacterData
-    nowLoading: boolean
-    setNowLoading: (b: boolean) => void
-    setShowModal: (b: boolean) => void
 }
 
 const day_ms = 86400000
 const getTimeStamp = (oldtime: number) => {
-    const now = new Date().getTime()
+    const now = Date.now()
     const delta = now - oldtime
     if (delta < now % day_ms) return new Date(oldtime).toLocaleTimeString()
     if (delta < (now % day_ms) + day_ms) return 'Yesterday'
     return new Date(oldtime).toLocaleDateString()
 }
 
-const UserListing: React.FC<CharacterListingProps> = ({
-    user,
-    nowLoading,
-    setNowLoading,
-    setShowModal,
-}) => {
+const UserListing: React.FC<CharacterListingProps> = ({ user }) => {
+    const styles = useStyles()
+    const { spacing } = Theme.useTheme()
+    const { setShowDrawer } = Drawer.useDrawerState((state) => ({
+        setShowDrawer: (b: boolean) => state.setShow(Drawer.ID.USERLIST, b),
+    }))
+
     const { userId, setCard } = Characters.useUserCard((state) => ({
         userId: state.id,
         setCard: state.setCard,
@@ -75,9 +75,7 @@ const UserListing: React.FC<CharacterListingProps> = ({
                     label: 'Clone User',
                     onPress: async () => {
                         menuRef.current?.close()
-                        setNowLoading(true)
                         await Characters.db.mutate.duplicateCard(user.id)
-                        setNowLoading(false)
                     },
                 },
             ],
@@ -91,12 +89,9 @@ const UserListing: React.FC<CharacterListingProps> = ({
             }>
             <TouchableOpacity
                 style={styles.longButton}
-                disabled={nowLoading}
                 onPress={async () => {
-                    setNowLoading(true)
                     await setCard(user.id)
-                    setShowModal(false)
-                    setNowLoading(false)
+                    setShowDrawer(false)
                 }}>
                 <View
                     style={{
@@ -118,7 +113,7 @@ const UserListing: React.FC<CharacterListingProps> = ({
                 </View>
 
                 <PopupMenu
-                    style={{ paddingHorizontal: 8 }}
+                    style={{ paddingHorizontal: spacing.m }}
                     disabled={false}
                     icon="edit"
                     options={[
@@ -142,56 +137,58 @@ const UserListing: React.FC<CharacterListingProps> = ({
 
 export default UserListing
 
-const styles = StyleSheet.create({
-    longButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        padding: 8,
-    },
+const useStyles = () => {
+    const { color, spacing, borderWidth, borderRadius, fontSize } = Theme.useTheme()
 
-    longButtonContainer: {
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-surface1'),
-        borderWidth: 2,
-        flexDirection: 'row',
-        marginBottom: 8,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderRadius: 8,
-        flex: 1,
-    },
+    return StyleSheet.create({
+        longButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+            padding: spacing.m,
+        },
 
-    longButtonSelectedContainer: {
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-brand'),
-        borderWidth: 2,
-        flexDirection: 'row',
-        marginBottom: 8,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderRadius: 8,
-        flex: 1,
-    },
+        longButtonContainer: {
+            borderColor: color.neutral._100,
+            borderWidth: borderWidth.m,
+            flexDirection: 'row',
+            marginBottom: spacing.m,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: spacing.m,
+            flex: 1,
+        },
 
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        margin: 4,
-        backgroundColor: Style.getColor('primary-surface2'),
-        borderWidth: 1,
-        borderColor: Style.getColor('primary-surface4'),
-    },
+        longButtonSelectedContainer: {
+            borderColor: color.primary._500,
+            borderWidth: borderWidth.m,
+            flexDirection: 'row',
+            marginBottom: spacing.m,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: spacing.m,
+            flex: 1,
+        },
 
-    nametag: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: Style.getColor('primary-text1'),
-    },
+        avatar: {
+            width: 48,
+            height: 48,
+            borderRadius: borderRadius.l,
+            margin: spacing.sm,
+            backgroundColor: color.neutral._100,
+            borderWidth: borderWidth.s,
+            borderColor: color.primary._300,
+        },
 
-    timestamp: {
-        fontSize: 12,
-        color: Style.getColor('primary-text2'),
-    },
-})
+        nametag: {
+            fontSize: fontSize.l,
+            fontWeight: '500',
+            color: color.text._200,
+        },
+
+        timestamp: {
+            fontSize: fontSize.s,
+            color: color.text._400,
+        },
+    })
+}

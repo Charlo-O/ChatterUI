@@ -1,7 +1,12 @@
+import Drawer from '@components/views/Drawer'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
-import { Characters, Chats, Style } from '@lib/utils/Global'
+import { useTranslation } from '@lib/hooks/useTranslation'
+import { Characters } from '@lib/state/Characters'
+import { Chats } from '@lib/state/Chat'
+import { Theme } from '@lib/theme/ThemeManager'
 import { useRouter } from 'expo-router'
-import { View, Text, StyleSheet } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { View, Text, StyleSheet, BackHandler } from 'react-native'
 import {
     Menu,
     MenuOption,
@@ -19,55 +24,71 @@ type MenuData = {
     button: 'back' | 'edit' | 'paperclip'
 }
 
-type OptionsMenuProps = {
-    menuRef: React.MutableRefObject<Menu | null>
-    showChats: (b: boolean) => void
-}
-
-const OptionsMenu: React.FC<OptionsMenuProps> = ({ menuRef, showChats }) => {
+const OptionsMenu = () => {
+    const { t } = useTranslation()
     const router = useRouter()
-    const { unloadCharacter } = Characters.useCharacterCard((state) => ({
-        unloadCharacter: state.unloadCard,
-    }))
+    const styles = useStyles()
+    const menuStyle = useMenuStyle()
+    const { color, spacing } = Theme.useTheme()
+    const [showMenu, setShowMenu] = useState(false)
+    const menuRef: React.MutableRefObject<Menu | null> = useRef(null)
 
-    const { unloadChat } = Chats.useChat()
+    const setShowChat = Drawer.useDrawerState(
+        (state) => (b: boolean) => state.setShow(Drawer.ID.CHATLIST, b)
+    )
+
+    useEffect(() => {
+        const backAction = () => {
+            if (showMenu) {
+                setShowMenu(false)
+                menuRef.current?.close()
+                return true
+            }
+            return false
+        }
+        const handler = BackHandler.addEventListener('hardwareBackPress', backAction)
+        return () => handler.remove()
+    }, [showMenu])
 
     const menuoptions: MenuData[] = [
         {
             callback: () => {
-                unloadCharacter()
-                unloadChat()
+                router.back()
             },
-            text: 'Main Menu',
+            text: t('menu.mainMenu'),
             button: 'back',
         },
         {
             callback: () => {
                 router.push('/CharacterEditor')
             },
-            text: 'Edit Character',
+            text: t('characters.editCharacter'),
             button: 'edit',
         },
         {
             callback: () => {
-                showChats(true)
+                setShowChat(true)
             },
-            text: 'Chat History',
+            text: t('chat.chatHistory'),
             button: 'paperclip',
         },
     ]
 
     return (
-        <Menu renderer={SlideInMenu} ref={menuRef}>
+        <Menu
+            onClose={() => setShowMenu(false)}
+            onOpen={() => setShowMenu(true)}
+            renderer={SlideInMenu}
+            ref={menuRef}>
             <MenuTrigger>
                 <Ionicons
-                    name="ellipsis-vertical-circle"
+                    name="caret-up-circle"
                     style={styles.optionsButton}
                     size={32}
-                    color={Style.getColor('primary-text2')}
+                    color={color.text._400}
                 />
             </MenuTrigger>
-            <MenuOptions customStyles={menustyle}>
+            <MenuOptions customStyles={menuStyle}>
                 {menuoptions.map((item, index) => (
                     <MenuOption key={index} onSelect={item.callback}>
                         <View
@@ -77,9 +98,9 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ menuRef, showChats }) => {
                                     : styles.optionItem
                             }>
                             <AntDesign
-                                style={{ minWidth: 25, marginLeft: 5 }}
+                                style={{ minWidth: 25, marginLeft: spacing.m }}
                                 name={item.button}
-                                color={Style.getColor('primary-text2')}
+                                color={color.text._400}
                                 size={24}
                             />
                             <Text style={styles.optionText}>{item.text}</Text>
@@ -93,34 +114,46 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ menuRef, showChats }) => {
 
 export default OptionsMenu
 
-const styles = StyleSheet.create({
-    optionsButton: {
-        paddingBottom: 6,
-    },
+const useMenuStyle = () => {
+    const { color, spacing } = Theme.useTheme()
 
-    optionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingBottom: 8,
-        borderBottomColor: Style.getColor('primary-surface3'),
-        borderBottomWidth: 1,
-    },
+    const menuStyle: MenuOptionsCustomStyle = {
+        optionsContainer: {
+            borderTopWidth: 1,
+            borderColor: color.neutral._300,
+            backgroundColor: color.neutral._100,
+            padding: spacing.sm,
+            borderRadius: spacing.m,
+        },
+    }
 
-    optionItemLast: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
+    return menuStyle
+}
 
-    optionText: {
-        color: Style.getColor('primary-text1'),
-        marginLeft: 16,
-    },
-})
+const useStyles = () => {
+    const { color, spacing, borderWidth } = Theme.useTheme()
 
-const menustyle: MenuOptionsCustomStyle = {
-    optionsContainer: {
-        backgroundColor: Style.getColor('primary-surface1'),
-        padding: 4,
-        borderRadius: 8,
-    },
+    return StyleSheet.create({
+        optionsButton: {
+            color: color.primary._500,
+        },
+
+        optionItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingBottom: spacing.m,
+            borderBottomColor: color.neutral._300,
+            borderBottomWidth: borderWidth.m,
+        },
+
+        optionItemLast: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        optionText: {
+            color: color.text._100,
+            marginLeft: spacing.xl,
+        },
+    })
 }

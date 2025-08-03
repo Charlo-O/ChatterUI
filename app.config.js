@@ -5,15 +5,21 @@ module.exports = {
         name: IS_DEV ? 'ChatterUI (DEV)' : 'ChatterUI',
         newArchEnabled: true,
         slug: 'ChatterUI',
-        version: '0.8.4',
+        version: '0.8.6',
         orientation: 'default',
         icon: './assets/images/icon.png',
         scheme: 'chatterui',
         userInterfaceStyle: 'automatic',
         assetBundlePatterns: ['**/*'],
         ios: {
+            icon: {
+                dark: './assets/images/ios-dark.png',
+                light: './assets/images/ios-light.png',
+                tinted: './assets/images/icon.png',
+            },
             supportsTablet: true,
             package: IS_DEV ? 'com.Vali98.ChatterUIDev' : 'com.Vali98.ChatterUI',
+            bundleIdentifier: IS_DEV ? 'com.Vali98.ChatterUIDev' : 'com.Vali98.ChatterUI',
         },
         android: {
             adaptiveIcon: {
@@ -37,10 +43,9 @@ module.exports = {
         },
         plugins: [
             [
-                'expo-custom-assets',
+                'expo-asset',
                 {
-                    assetsPaths: ['./assets/models'],
-                    assetsDirName: 'appAssets',
+                    assets: ['./assets/models/aibot.png', './assets/models/llama3tokenizer.gguf'],
                 },
             ],
             [
@@ -70,6 +75,12 @@ module.exports = {
                     icon: './assets/images/notification.png',
                 },
             ],
+            [
+                './expo-build-plugins/androidattributes.plugin.js',
+                {
+                    'android:largeHeap': true,
+                },
+            ],
             'expo-localization',
             'expo-router',
             'expo-sqlite',
@@ -90,3 +101,4 @@ module.exports = {
         },
     },
 }
+

@@ -1,8 +1,15 @@
-import { AppSettings, Chats } from '@lib/utils/Global'
-import { FlatList, StyleSheet, View } from 'react-native'
+import { AppSettings } from '@lib/constants/GlobalValues'
+import { useAppMode } from '@lib/state/AppMode'
+import { useBackgroundImage } from '@lib/state/BackgroundImage'
+import { Chats } from '@lib/state/Chat'
+import { AppDirectory } from '@lib/utils/File'
+import { ImageBackground } from 'expo-image'
+import { FlatList } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 
 import ChatItem from './ChatItem'
+import ChatModelName from './ChatModelName'
+import EditorModal from './EditorModal'
 
 type ListItem = {
     index: number
@@ -13,7 +20,11 @@ type ListItem = {
 
 const ChatWindow = () => {
     const { chat } = Chats.useChat()
-    const [autoScroll, setAutoScroll] = useMMKVBoolean(AppSettings.AutoScroll)
+    const { appMode } = useAppMode()
+    const [showModelname, __] = useMMKVBoolean(AppSettings.ShowModelInChat)
+    const [autoScroll, ___] = useMMKVBoolean(AppSettings.AutoScroll)
+
+    const image = useBackgroundImage((state) => state.image)
 
     const list: ListItem[] = (chat?.messages ?? [])
         .map((item, index) => ({
@@ -35,30 +46,24 @@ const ChatWindow = () => {
     }
 
     return (
-        <View style={styles.chatHistory}>
-            <View style={styles.chatHistory}>
-                <FlatList
-                    style={styles.chatHistory}
-                    maintainVisibleContentPosition={
-                        autoScroll ? null : { minIndexForVisible: 1, autoscrollToTopThreshold: 50 }
-                    }
-                    keyboardShouldPersistTaps="handled"
-                    removeClippedSubviews={false}
-                    inverted
-                    windowSize={2}
-                    data={list}
-                    keyExtractor={(item) => item.key}
-                    renderItem={renderItems}
-                />
-            </View>
-        </View>
+        <ImageBackground
+            cachePolicy="none"
+            style={{ flex: 1 }}
+            source={{ uri: image ? AppDirectory.Assets + image : '' }}>
+            <EditorModal />
+            {showModelname && appMode === 'local' && <ChatModelName />}
+            <FlatList
+                maintainVisibleContentPosition={
+                    autoScroll ? null : { minIndexForVisible: 1, autoscrollToTopThreshold: 50 }
+                }
+                keyboardShouldPersistTaps="handled"
+                inverted
+                data={list}
+                keyExtractor={(item) => item.key}
+                renderItem={renderItems}
+            />
+        </ImageBackground>
     )
 }
 
 export default ChatWindow
-
-const styles = StyleSheet.create({
-    chatHistory: {
-        flex: 1,
-    },
-})

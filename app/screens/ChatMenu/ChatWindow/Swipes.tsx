@@ -1,9 +1,9 @@
 import { AntDesign } from '@expo/vector-icons'
 import { continueResponse, generateResponse, regenerateResponse } from '@lib/engine/Inference'
 import { Chats } from '@lib/state/Chat'
-import { Style } from '@lib/utils/Global'
+import { Theme } from '@lib/theme/ThemeManager'
 import React from 'react'
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 type SwipesProps = {
     nowGenerating: boolean
@@ -12,6 +12,9 @@ type SwipesProps = {
 }
 
 const Swipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index }) => {
+    const styles = useStyles()
+    const { color } = Theme.useTheme()
+
     const { swipeChat, addSwipe } = Chats.useSwipes()
     const { swipeText, swipeId, swipeIndex, swipesLength } = Chats.useSwipeData(index)
 
@@ -33,23 +36,19 @@ const Swipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index }) => 
 
     return (
         <View style={styles.swipesItem}>
-            <TouchableHighlight
+            <TouchableOpacity
                 style={styles.swipeButton}
                 onPress={handleSwipeLeft}
                 disabled={nowGenerating || swipeIndex === 0}>
                 <AntDesign
                     name="left"
                     size={20}
-                    color={
-                        swipeIndex === 0 || nowGenerating
-                            ? Style.getColor('primary-text3')
-                            : Style.getColor('primary-text1')
-                    }
+                    color={swipeIndex === 0 || nowGenerating ? color.text._600 : color.text._300}
                 />
-            </TouchableHighlight>
+            </TouchableOpacity>
 
             {index !== 0 && (
-                <TouchableHighlight
+                <TouchableOpacity
                     onPress={() => swipeId && regenerateResponse(swipeId)}
                     onLongPress={() => swipeId && regenerateResponse(swipeId, false)}
                     disabled={nowGenerating}
@@ -57,13 +56,9 @@ const Swipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index }) => 
                     <AntDesign
                         name="retweet"
                         size={20}
-                        color={
-                            nowGenerating
-                                ? Style.getColor('primary-text3')
-                                : Style.getColor('primary-text1')
-                        }
+                        color={nowGenerating ? color.text._600 : color.text._300}
                     />
-                </TouchableHighlight>
+                </TouchableOpacity>
             )}
 
             <Text style={styles.swipeText}>
@@ -71,23 +66,19 @@ const Swipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index }) => 
             </Text>
 
             {index !== 0 && (
-                <TouchableHighlight
+                <TouchableOpacity
                     onPress={() => swipeId && continueResponse(swipeId)}
                     disabled={nowGenerating}
                     style={styles.swipeButton}>
                     <AntDesign
                         name="forward"
                         size={20}
-                        color={
-                            nowGenerating
-                                ? Style.getColor('primary-text3')
-                                : Style.getColor('primary-text1')
-                        }
+                        color={nowGenerating ? color.text._600 : color.text._300}
                     />
-                </TouchableHighlight>
+                </TouchableOpacity>
             )}
 
-            <TouchableHighlight
+            <TouchableOpacity
                 style={styles.swipeButton}
                 onPress={() => handleSwipeRight('')}
                 onLongPress={() => handleSwipeRight(swipeText ?? '')}
@@ -95,36 +86,35 @@ const Swipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index }) => 
                 <AntDesign
                     name="right"
                     size={20}
-                    color={
-                        isLastAltGreeting || nowGenerating
-                            ? Style.getColor('primary-text3')
-                            : Style.getColor('primary-text1')
-                    }
+                    color={isLastAltGreeting || nowGenerating ? color.text._400 : color.text._300}
                 />
-            </TouchableHighlight>
+            </TouchableOpacity>
         </View>
     )
 }
 
 export default Swipes
 
-const styles = StyleSheet.create({
-    swipesItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        flex: 1,
-        marginTop: 4,
-    },
+const useStyles = () => {
+    const { color, spacing } = Theme.useTheme()
+    return StyleSheet.create({
+        swipesItem: {
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            flex: 1,
+            marginTop: spacing.sm,
+        },
 
-    swipeText: {
-        color: Style.getColor('primary-text2'),
-        paddingVertical: 6,
-        paddingHorizontal: 8,
-    },
+        swipeText: {
+            color: color.text._200,
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.m,
+        },
 
-    swipeButton: {
-        alignItems: 'center',
-        flex: 1,
-        paddingVertical: 4,
-    },
-})
+        swipeButton: {
+            alignItems: 'center',
+            flex: 1,
+            paddingVertical: spacing.sm,
+        },
+    })
+}

@@ -1,70 +1,64 @@
+import ThemedButton from '@components/buttons/ThemedButton'
 import FadeBackrop from '@components/views/FadeBackdrop'
-import { MaterialIcons } from '@expo/vector-icons'
-import { Chats, Style } from '@lib/utils/Global'
-import { ColorId } from '@lib/theme/Style'
-import React, { useState } from 'react'
-import {
-    GestureResponderEvent,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native'
+import { Chats } from '@lib/state/Chat'
+import { Theme } from '@lib/theme/ThemeManager'
+import * as ClipBoard from 'expo-clipboard'
+import React, { useEffect, useState } from 'react'
+import { GestureResponderEvent, Modal, StyleSheet, Text, TextInput, View } from 'react-native'
 import Animated, { SlideOutDown } from 'react-native-reanimated'
-import { useShallow } from 'zustand/react/shallow'
+import { create } from 'zustand'
 
-type EditorButtonProps = {
-    name: 'delete' | 'check' | 'close'
-    color: ColorId
-    label: string
-    onPress: () => void
-}
-
-const EditorButton = ({ name, onPress, label, color }: EditorButtonProps) => (
-    <TouchableOpacity style={styles.editButton} onPress={onPress}>
-        <MaterialIcons
-            name={name}
-            size={name === 'delete' ? 20 : 24}
-            color={Style.getColor(color)}
-        />
-        <Text
-            style={{
-                color: Style.getColor('primary-text2'),
-                paddingLeft: 8,
-            }}>
-            {label}
-        </Text>
-    </TouchableOpacity>
-)
-
-type EditorProps = {
+type ChatEditorStateProps = {
     index: number
-    isLastMessage: boolean
-    setEditMode: React.Dispatch<React.SetStateAction<boolean>>
     editMode: boolean
+    hide: () => void
+    show: (index: number) => void
 }
 
-const EditorModal: React.FC<EditorProps> = ({ index, isLastMessage, setEditMode, editMode }) => {
+//TODO: This is somewhat unsafe, as it always expects index to be valid at 0
+export const useChatEditorState = create<ChatEditorStateProps>()((set, get) => ({
+    index: 0,
+    editMode: false,
+    hide: () => {
+        set((state) => ({ ...state, editMode: false }))
+    },
+    show: (index) => {
+        set((state) => ({ ...state, editMode: true, index: index }))
+    },
+}))
+
+const EditorModal = () => {
+    const { index, editMode, hide } = useChatEditorState((state) => ({
+        index: state.index,
+        editMode: state.editMode,
+        hide: state.hide,
+    }))
+    const styles = useStyles()
+
     const { updateEntry, deleteEntry } = Chats.useEntry()
     const { swipeText, swipe } = Chats.useSwipeData(index)
     const entry = Chats.useEntryData(index)
+    const [placeholderText, setPlaceholderText] = useState('')
 
-    const [placeholderText, setPlaceholderText] = useState(swipeText)
+    useEffect(() => {
+        editMode && swipeText !== undefined && setPlaceholderText(swipeText)
+    }, [swipeText, editMode])
+
+    // TODO: This should safely return if invalid values were given
+    if (swipeText === undefined) return
 
     const handleEditMessage = () => {
-        updateEntry(index, placeholderText, false)
-        setEditMode(false)
+        hide()
+        updateEntry(index, placeholderText)
     }
 
     const handleDeleteMessage = () => {
+        hide()
         deleteEntry(index)
-        setEditMode(false)
     }
 
     const handleClose = () => {
-        setEditMode(false)
+        hide()
     }
 
     const handleOverlayClick = (e: GestureResponderEvent) => {
@@ -93,8 +87,38 @@ const EditorModal: React.FC<EditorProps> = ({ index, isLastMessage, setEditMode,
                 <View style={{ flex: 1 }} />
                 <Animated.View exiting={SlideOutDown.duration(100)} style={styles.editorContainer}>
                     <View style={styles.topText}>
-                        <Text style={styles.nameText}>{entry?.name}</Text>
-                        <Text style={styles.timeText}>{swipe?.send_date.toLocaleTimeString()}</Text>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'flex-end',
+                                flex: 1,
+                            }}>
+                            <Text numberOfLines={1} style={styles.nameText}>
+                                {entry?.name}
+                            </Text>
+                            <Text style={styles.timeText}>
+                                {swipe?.send_date.toLocaleTimeString()}
+                            </Text>
+                        </View>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'flex-end',
+                                columnGap: 16,
+                            }}>
+                            <ThemedButton
+                                iconName="reload1"
+                                variant="tertiary"
+                                label="Reset"
+                                onPress={() => swipeText && setPlaceholderText(swipeText)}
+                            />
+                            <ThemedButton
+                                iconName="copy1"
+                                variant="tertiary"
+                                label="Copy"
+                                onPress={() => swipeText && ClipBoard.setStringAsync(swipeText)}
+                            />
+                        </View>
                     </View>
 
                     <TextInput
@@ -110,20 +134,18 @@ const EditorModal: React.FC<EditorProps> = ({ index, isLastMessage, setEditMode,
                         style={{
                             flexDirection: 'row',
                             justifyContent: 'space-between',
-                            marginTop: 8,
                         }}>
-                        <EditorButton
-                            name="delete"
+                        <ThemedButton
                             label="Delete"
+                            iconName="delete"
                             onPress={handleDeleteMessage}
-                            color="destructive-brand"
+                            variant="critical"
                         />
-
-                        <EditorButton
-                            name="check"
+                        <ThemedButton
                             label="Confirm"
+                            iconName="check"
                             onPress={handleEditMessage}
-                            color="primary-text1"
+                            variant="secondary"
                         />
                     </View>
                 </Animated.View>
@@ -134,57 +156,49 @@ const EditorModal: React.FC<EditorProps> = ({ index, isLastMessage, setEditMode,
 
 export default EditorModal
 
-const styles = StyleSheet.create({
-    editorContainer: {
-        backgroundColor: Style.getColor('primary-surface2'),
-        flexShrink: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderTopRightRadius: 24,
-        borderTopLeftRadius: 24,
-    },
+const useStyles = () => {
+    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
+    return StyleSheet.create({
+        editorContainer: {
+            backgroundColor: color.neutral._100,
+            flexShrink: 1,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.l,
+            paddingHorizontal: spacing.xl,
+            borderTopRightRadius: borderRadius.l,
+            borderTopLeftRadius: borderRadius.l,
+            rowGap: 12,
+        },
 
-    topText: {
-        flexDirection: 'row',
-        paddingTop: 12,
-        marginBottom: 8,
-        alignItems: 'flex-end',
-        shadowColor: Style.getColor('primary-shadow'),
-        borderTopRightRadius: 8,
-        borderTopLeftRadius: 8,
-    },
+        topText: {
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            shadowColor: color.shadow,
+            borderTopRightRadius: spacing.m,
+            borderTopLeftRadius: spacing.m,
+        },
 
-    nameText: {
-        color: Style.getColor('primary-text1'),
-        fontSize: 18,
-        marginLeft: 24,
-    },
+        nameText: {
+            color: color.text._100,
+            fontSize: fontSize.l,
+            marginLeft: spacing.l,
+            flex: 1,
+        },
 
-    timeText: {
-        color: Style.getColor('primary-text2'),
-        fontSize: 12,
-        marginLeft: 8,
-    },
+        timeText: {
+            color: color.text._400,
+            fontSize: fontSize.s,
+            marginHorizontal: spacing.s,
+        },
 
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: 108,
-        height: 33,
-        paddingLeft: 12,
-        paddingVertical: 4,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: Style.getColor('primary-surface4'),
-    },
-
-    messageInput: {
-        color: Style.getColor('primary-text1'),
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-brand'),
-        borderRadius: 8,
-        borderWidth: 1,
-        padding: 8,
-        flexShrink: 1,
-    },
-})
+        messageInput: {
+            color: color.text._100,
+            borderColor: color.neutral._400,
+            borderRadius: 8,
+            borderWidth: 1,
+            padding: 8,
+            flexShrink: 1,
+        },
+    })
+}

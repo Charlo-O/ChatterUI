@@ -25,37 +25,24 @@ export const enum Global {
 
     // UserID = 'userid', // moved to zustand state
 
-    // Management
-
-    CpuFeatures = 'cpufeatures',
-
-    Logs = 'logs',
-
-    AppMode = 'appmode',
-    // User
-
-    // Chat
-
-    // Instruct
-
     // Presets
-    // TODO: Remove once migration complete
-    PresetID = 'presetID',
-    PresetData = 'presetdata',
-    PresetName = 'presetdame',
+    // Removed on preset rework
+    // PresetID = 'presetID',
+    // PresetData = 'presetdata',
+    // PresetName = 'presetdame',
 
     // Lorebooks
-
-    LorebookNames = 'lorebooknames',
+    // LorebookNames = 'lorebooknames',  // removed with temp menu
 
     // APIs
 
     /**
      * These values are now only used for the legacy system
      * Will likely be removed in future
+     * Updated: Deprecated in 0.8.5
      */
 
-    APIType = 'endpointtype', // name of current api mode
+    /* APIType = 'endpointtype', // name of current api mode
 
     KAIEndpoint = 'kaiendpoint', // kai api endpoint
 
@@ -97,35 +84,34 @@ export const enum Global {
     ChatCompletionsModel = 'chatcompletionsmodel',
 
     CohereKey = 'coherekey',
-    CohereModel = 'coheremodel',
+    CohereModel = 'coheremodel', */
 
-    // Local
+    // Local - deprecated with move to EngineData
 
     // object containing model info object based on db schema, needed for auto-loading
-    LocalModel = 'localmodel',
+    // LocalModel = 'localmodel',
     // preset values for model cpu specs
-    LocalPreset = 'localpreset',
+    // LocalPreset = 'localpreset',
     // whether or not a KV cache has been loaded
-    LocalSessionLoaded = 'localsessionloaded',
+    // LocalSessionLoaded = 'localsessionloaded',
 
-    // TODO move to AppSettings
-    TTSSpeaker = 'ttsspeaker',
-    TTSEnable = 'ttsenable',
-    TTSAuto = `ttsauto`,
+    // Logs = 'logs', // moved to zustand state
+
+    // Moved to Zustand state
+    // TTSSpeaker = 'ttsspeaker',
+    // TTSEnable = 'ttsenable',
+    // TTSAuto = `ttsauto`,
     // TTSAutoStart = 'ttsautostart', // moved autoTTS to zustand state
-}
 
-export enum GenerationSettings {
-    DisableFirst = 'disablefirst',
-    UseFormatter = 'useformatter',
-    FormatterTarget = 'formattertarget',
-    FormatterSource = 'formattersource',
+    // Management
+    // AppMode = 'appmode', // moved to zustand state
+
+    CpuFeatures = 'cpufeatures',
 }
 
 export enum AppSettings {
     DevMode = 'devmode',
     DarkMode = 'darkmode',
-    PrimaryHue = 'primaryhue',
     AnimateEditor = 'animateeditor',
     CreateFirstMes = 'createfirstmes',
     ChatOnStartup = 'chatonstartup',
@@ -143,18 +129,17 @@ export enum AppSettings {
     LocallyAuthenticateUser = 'localauthuser',
     UnlockOrientation = 'unlockorientation',
     UseLegacyAPI = 'uselegacyapi',
-}
-
-export enum AppMode {
-    LOCAL = 'local',
-    REMOTE = 'remote',
+    ShowModelInChat = 'showmodelinchat',
+    ShowTags = 'showtags',
+    UseModelTemplate = 'useModelTemplate',
+    ShowTokenPerSecond = 'showtokenpersecond',
+    AutoLoadUser = 'autoloaduser',
 }
 
 /**
  * Default settings on first install
- * TODO: Remove primary hue to simply
  */
-export const AppSettingsDefault: Record<AppSettings, boolean | number> = {
+export const AppSettingsDefault: Record<AppSettings, boolean> = {
     [AppSettings.AnimateEditor]: true,
     [AppSettings.AutoLoadLocal]: false,
     [AppSettings.AutoScroll]: true,
@@ -162,7 +147,6 @@ export const AppSettingsDefault: Record<AppSettings, boolean | number> = {
     [AppSettings.CreateFirstMes]: true,
     [AppSettings.DarkMode]: true,
     [AppSettings.DevMode]: false,
-    [AppSettings.PrimaryHue]: 240,
     [AppSettings.SendOnEnter]: false,
     [AppSettings.SaveLocalKV]: false,
     [AppSettings.PrintContext]: false,
@@ -175,4 +159,11 @@ export const AppSettingsDefault: Record<AppSettings, boolean | number> = {
     [AppSettings.ShowNotificationText]: false,
     [AppSettings.UnlockOrientation]: false,
     [AppSettings.UseLegacyAPI]: false,
+    [AppSettings.ShowModelInChat]: false,
+    [AppSettings.ShowTags]: false,
+    [AppSettings.UseModelTemplate]: true,
+    [AppSettings.ShowTokenPerSecond]: true,
+    [AppSettings.AutoLoadUser]: true,
 }
+
+export const CLAUDE_VERSION = '2023-06-01'

@@ -1,47 +1,76 @@
+import ThemedButton from '@components/buttons/ThemedButton'
 import { AntDesign } from '@expo/vector-icons'
-import { Style } from '@lib/utils/Global'
+import { Logger } from '@lib/state/Logger'
+import { Theme } from '@lib/theme/ThemeManager'
 import React, { useState } from 'react'
-import { Text, TextInput, TouchableOpacity, View, StyleSheet, ViewStyle } from 'react-native'
+import {
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    StyleSheet,
+    ViewStyle,
+    ScrollView,
+} from 'react-native'
 
 type StringArrayEditorProps = {
-    style?: ViewStyle
-    title: string
+    containerStyle?: ViewStyle
+    label?: string
     value: string[]
     setValue: (newdata: string[]) => void
     allowDuplicates?: boolean
+    placeholder?: string
     replaceNewLine?: string
     allowBlank?: string
+    suggestions?: string[]
+    filterOnly?: boolean
+    showSuggestionsOnEmpty?: boolean
 }
 
 const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
-    style = undefined,
-    title,
+    containerStyle = undefined,
+    label = undefined,
     value,
     setValue,
     replaceNewLine = undefined,
     allowDuplicates = false,
+    placeholder = 'Enter value...',
     allowBlank = false,
+    suggestions = [],
+    filterOnly = false,
+    showSuggestionsOnEmpty = false,
 }) => {
+    const { color, borderRadius } = Theme.useTheme()
+    const styles = useStyles()
     const [newData, setNewData] = useState('')
-
+    const filteredSuggestions = suggestions.filter(
+        (item) => item.toLowerCase().includes(newData.toLowerCase()) && !value.includes(item)
+    )
     const handleSplice = (index: number) => {
         setValue(value.filter((item, index2) => index2 !== index))
     }
 
     const addData = (newData: string) => {
-        if (newData === '') return
-        if (value.includes(newData)) return
+        if (newData === '') {
+            Logger.warnToast('Value cannot be empty')
+            return
+        }
+        if (value.includes(newData)) {
+            Logger.warnToast('Value already exists')
+            return
+        }
         setNewData('')
         setValue([...value, newData])
     }
 
     return (
-        <View style={[styles.mainContainer, style]}>
-            <Text style={styles.title}>{title}</Text>
+        <View style={[styles.mainContainer, containerStyle]}>
+            {label && <Text style={styles.title}>{label}</Text>}
+
             <View style={styles.contentContainer}>
-                <View style={styles.tagContainer}>
-                    {value.length !== 0 &&
-                        value.map((item, index) => (
+                {value.length !== 0 && (
+                    <View style={styles.tagContainer}>
+                        {value.map((item, index) => (
                             <TouchableOpacity
                                 key={index}
                                 style={styles.tag}
@@ -49,15 +78,51 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                                 <Text style={styles.tagText}>
                                     {item.replaceAll('\n', replaceNewLine ?? '\n')}
                                 </Text>
-                                <AntDesign
-                                    name="close"
-                                    size={16}
-                                    color={Style.getColor('primary-text2')}
-                                />
+                                <AntDesign name="close" size={16} color={color.text._400} />
                             </TouchableOpacity>
                         ))}
-                    {value.length === 0 && <Text style={styles.emptyTag}>{'<No Values>'}</Text>}
-                </View>
+                    </View>
+                )}
+                {(newData || showSuggestionsOnEmpty) && filteredSuggestions.length > 0 && (
+                    <View
+                        style={{
+                            marginBottom: 4,
+                            flexDirection: 'row',
+                            columnGap: 4,
+                            alignItems: 'center',
+                        }}>
+                        {!filterOnly && (
+                            <Text style={{ color: color.text._400, marginBottom: 4 }}>
+                                Suggestions
+                            </Text>
+                        )}
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            nestedScrollEnabled
+                            style={{
+                                borderRadius: borderRadius.m,
+                            }}
+                            contentContainerStyle={{
+                                backgroundColor: color.neutral._100,
+                                borderColor: color.neutral._200,
+                                borderWidth: 1,
+                                flexDirection: 'row',
+                                columnGap: 8,
+                            }}>
+                            {filteredSuggestions.map((item, index) => (
+                                <ThemedButton
+                                    buttonStyle={{ paddingVertical: 4 }}
+                                    onPress={() => addData(item)}
+                                    variant="secondary"
+                                    label={item}
+                                    key={index}
+                                />
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
@@ -65,12 +130,11 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                         onChangeText={setNewData}
                         keyboardType="default"
                         multiline
-                        placeholder="Enter value..."
-                        placeholderTextColor={Style.getColor('primary-text3')}
+                        placeholder={placeholder}
+                        placeholderTextColor={color.text._700}
                     />
-                    <TouchableOpacity style={styles.button} onPress={() => addData(newData)}>
-                        <Text style={styles.buttonText}>Add</Text>
-                    </TouchableOpacity>
+
+                    {!filterOnly && <ThemedButton label="Add" onPress={() => addData(newData)} />}
                 </View>
             </View>
         </View>
@@ -79,76 +143,72 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
 
 export default StringArrayEditor
 
-const styles = StyleSheet.create({
-    mainContainer: {
-        flex: 1,
-    },
+const useStyles = () => {
+    const { color, spacing, borderRadius } = Theme.useTheme()
 
-    contentContainer: {
-        borderRadius: 8,
-    },
+    return StyleSheet.create({
+        mainContainer: {
+            flex: 1,
+        },
 
-    title: {
-        color: Style.getColor('primary-text1'),
-        marginBottom: 12,
-    },
+        contentContainer: {
+            borderWidth: 1,
+            color: color.text._100,
+            borderColor: color.neutral._300,
+            paddingHorizontal: spacing.s,
+            paddingVertical: spacing.m,
+            borderRadius: borderRadius.m,
+        },
 
-    tagContainer: {
-        flexDirection: 'row',
-        columnGap: 8,
-        rowGap: 8,
-        flexWrap: 'wrap',
-    },
+        title: {
+            color: color.text._100,
+            marginBottom: spacing.m,
+        },
 
-    tag: {
-        backgroundColor: Style.getColor('primary-surface4'),
-        paddingVertical: 4,
-        paddingLeft: 12,
-        paddingRight: 8,
-        borderRadius: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
+        tagContainer: {
+            flexDirection: 'row',
+            columnGap: spacing.m,
+            rowGap: spacing.m,
+            paddingBottom: spacing.m,
+            marginBottom: spacing.m,
+            borderBottomWidth: 1,
+            borderColor: color.primary._200,
+            flexWrap: 'wrap',
+        },
 
-    tagText: {
-        color: Style.getColor('primary-text1'),
-        marginRight: 8,
-    },
+        tag: {
+            borderColor: color.primary._700,
+            borderWidth: 1,
+            paddingVertical: 4,
+            paddingLeft: 12,
+            paddingRight: 8,
+            borderRadius: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
 
-    emptyTag: {
-        color: Style.getColor('primary-text2'),
-        paddingVertical: 4,
-        paddingHorizontal: 12,
-        fontStyle: 'italic',
-    },
+        tagText: {
+            color: color.text._100,
+            marginRight: 8,
+        },
 
-    input: {
-        flex: 1,
-        borderWidth: 1,
-        color: Style.getColor('primary-text1'),
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-surface3'),
-        marginTop: 12,
-        marginBottom: 4,
-        marginRight: 12,
-        paddingVertical: 6,
-        paddingHorizontal: 8,
-        borderRadius: 8,
-    },
+        emptyTag: {
+            color: color.text._400,
+            paddingVertical: 4,
+            paddingHorizontal: 12,
+            fontStyle: 'italic',
+        },
 
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
+        input: {
+            flex: 1,
+            color: color.text._100,
+            paddingHorizontal: 8,
+            borderRadius: 8,
+        },
 
-    button: {
-        borderRadius: 8,
-        paddingVertical: 4,
-        paddingHorizontal: 12,
-        backgroundColor: Style.getColor('primary-brand'),
-    },
-
-    buttonText: {
-        color: Style.getColor('primary-text1'),
-    },
-})
+        inputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+    })
+}

@@ -1,34 +1,40 @@
 import Avatar from '@components/views/Avatar'
-import { CharInfo } from '@lib/state/Characters'
-import { Characters, Chats, Logger, Style } from '@lib/utils/Global'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { AppSettings } from '@lib/constants/GlobalValues'
+import { Characters, CharInfo } from '@lib/state/Characters'
+import { Chats } from '@lib/state/Chat'
+import { Logger } from '@lib/state/Logger'
+import { Theme } from '@lib/theme/ThemeManager'
+import { getFriendlyTimeStamp } from '@lib/utils/Time'
+import { useRouter } from 'expo-router'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useMMKVBoolean } from 'react-native-mmkv'
 
 import CharacterEditPopup from './CharacterEditPopup'
+import { useCharacterListSorter } from './CharacterListHeader'
 
 type CharacterListingProps = {
     index: number
     character: CharInfo
     nowLoading: boolean
-    showTags: boolean
     setNowLoading: (b: boolean) => void
-}
-
-const day_ms = 86400000
-const getTimeStamp = (oldtime: number) => {
-    const now = new Date().getTime()
-    const delta = now - oldtime
-    if (delta < now % day_ms) return new Date(oldtime).toLocaleTimeString()
-    if (delta < (now % day_ms) + day_ms) return 'Yesterday'
-    return new Date(oldtime).toLocaleDateString()
 }
 
 const CharacterListing: React.FC<CharacterListingProps> = ({
     index,
     character,
     nowLoading,
-    showTags,
     setNowLoading,
 }) => {
+    const router = useRouter()
+    const [showTags, _] = useMMKVBoolean(AppSettings.ShowTags)
+    const { setShowSearch, setTagFilter, tagFilter } = useCharacterListSorter((state) => ({
+        setShowSearch: state.setShowSearch,
+        setTagFilter: state.setTagFilter,
+        tagFilter: state.tagFilter,
+    }))
+    const { color } = Theme.useTheme()
+    const styles = useStyles()
+
     const { loadedCharId, setCurrentCard } = Characters.useCharacterCard((state) => ({
         loadedCharId: state.id,
         setCurrentCard: state.setCard,
@@ -46,13 +52,14 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
                 chatId = await Chats.db.mutate.createChat(charId)
             }
             if (!chatId) {
-                Logger.log('Chat creation backup has failed! Please report.', true)
+                Logger.errorToast('Chat creation backup has failed! Please report.')
                 return
             }
             await loadChat(chatId)
             setNowLoading(false)
+            router.push('/screens/ChatMenu')
         } catch (error) {
-            Logger.log(`Couldn't load character: ${error}`, true)
+            Logger.errorToast(`Couldn't load character: ${error}`)
             setNowLoading(false)
         }
     }
@@ -63,12 +70,7 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
     }
 
     return (
-        <View
-            style={
-                character.id === loadedCharId
-                    ? styles.longButtonSelectedContainer
-                    : styles.longButtonContainer
-            }>
+        <View style={styles.longButtonContainer}>
             <TouchableOpacity
                 style={styles.longButton}
                 disabled={nowLoading}
@@ -84,7 +86,7 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
                             {character.name}
                         </Text>
                         <Text style={styles.timestamp}>
-                            {getTimeStamp(character.last_modified)}
+                            {getFriendlyTimeStamp(character.last_modified)}
                         </Text>
                     </View>
                     {character.latestSwipe && (
@@ -94,18 +96,24 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
                     )}
                     <View
                         style={{
-                            paddingLeft: 16,
+                            marginTop: 8,
                             flex: 1,
                             flexDirection: 'row',
                             flexWrap: 'wrap',
-                            columnGap: 2,
-                            rowGap: 2,
+                            columnGap: 4,
+                            rowGap: 4,
                         }}>
                         {showTags &&
                             character.tags.map((item, index) => (
-                                <Text style={styles.tag} key={index}>
-                                    {item}
-                                </Text>
+                                <TouchableOpacity
+                                    key={index}
+                                    onPress={() => {
+                                        setShowSearch(true)
+                                        if (tagFilter.includes(item)) return
+                                        setTagFilter([...tagFilter, item])
+                                    }}>
+                                    <Text style={styles.tag}>{item}</Text>
+                                </TouchableOpacity>
                             ))}
                     </View>
                 </View>
@@ -113,7 +121,7 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
             <View>
                 {nowLoading && character.id === loadedCharId ? (
                     <ActivityIndicator
-                        color={Style.getColor('primary-text2')}
+                        color={color.text._100}
                         style={{ paddingLeft: 8 }}
                         size={28}
                     />
@@ -131,70 +139,60 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
 
 export default CharacterListing
 
-const styles = StyleSheet.create({
-    longButton: {
-        flexDirection: 'row',
-        flex: 1,
-        padding: 8,
-    },
+const useStyles = () => {
+    const { color, spacing, borderWidth, borderRadius, fontSize } = Theme.useTheme()
 
-    longButtonContainer: {
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-surface1'),
-        borderWidth: 2,
-        flexDirection: 'row',
-        marginBottom: 8,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderRadius: 8,
-        flex: 1,
-    },
+    return StyleSheet.create({
+        longButton: {
+            flexDirection: 'row',
+            flex: 1,
+            padding: spacing.l,
+        },
 
-    longButtonSelectedContainer: {
-        backgroundColor: Style.getColor('primary-surface1'),
-        borderColor: Style.getColor('primary-brand'),
-        borderWidth: 2,
-        flexDirection: 'row',
-        marginBottom: 8,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderRadius: 8,
-        flex: 1,
-    },
+        longButtonContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: borderRadius.m,
+            flex: 1,
+        },
 
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        margin: 4,
-        backgroundColor: Style.getColor('primary-surface2'),
-    },
+        avatar: {
+            width: 48,
+            height: 48,
+            borderRadius: borderRadius.l,
+            margin: spacing.sm,
+            backgroundColor: color.neutral._200,
+            borderColor: color.neutral._200,
+            borderWidth: 1,
+        },
 
-    nametag: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '500',
-        color: Style.getColor('primary-text1'),
-    },
+        nametag: {
+            flex: 1,
+            fontSize: fontSize.l,
+            fontWeight: '500',
+            color: color.text._100,
+        },
 
-    timestamp: {
-        fontSize: 12,
-        color: Style.getColor('primary-text2'),
-    },
+        timestamp: {
+            fontSize: fontSize.s,
+            color: color.text._400,
+        },
 
-    previewText: {
-        marginTop: 4,
-        color: Style.getColor('primary-text3'),
-    },
+        previewText: {
+            marginTop: spacing.s,
+            color: color.text._500,
+        },
 
-    tag: {
-        color: Style.getColor('primary-text2'),
-        fontSize: 12,
-        backgroundColor: Style.getColor('primary-surface4'),
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-        borderRadius: 4,
-        rowGap: 2,
-        columnGap: 4,
-    },
-})
+        tag: {
+            color: color.text._200,
+            fontSize: fontSize.m,
+            borderWidth: 1,
+            borderColor: color.primary._200,
+            backgroundColor: color.primary._100,
+            paddingHorizontal: spacing.l,
+            paddingVertical: spacing.s,
+            borderRadius: borderRadius.xl,
+        },
+    })
+}

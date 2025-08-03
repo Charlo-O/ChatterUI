@@ -1,34 +1,43 @@
-import { AppMode, AppSettings } from '@lib/constants/GlobalValues'
-import { Llama } from '@lib/engine/LlamaLocal'
+import { AppSettings } from '@lib/constants/GlobalValues'
 import { Tokenizer } from '@lib/engine/Tokenizer'
-import { replaceMacros } from '@lib/state/Characters'
-import { Characters, Chats, Global, Instructs, Logger, mmkv } from '@lib/utils/Global'
+import { Characters } from '@lib/state/Characters'
+import { Chats } from '@lib/state/Chat'
+import { Instructs } from '@lib/state/Instructs'
+import { Logger } from '@lib/state/Logger'
+import { mmkv } from '@lib/storage/MMKV'
+import { replaceMacros } from '@lib/utils/Macros'
 
 import { APIConfiguration, APIValues } from './APIBuilder.types'
 
-export const buildTextCompletionContext = (max_length: number) => {
+const getCardData = () => {
+    const userCard = { ...Characters.useUserCard.getState().card }
+    const currentCard = { ...Characters.useCharacterCard.getState().card }
+    return { userCard, currentCard }
+}
+
+const getCaches = (charName: string, userName: string) => {
+    const characterCache = Characters.useCharacterCard.getState().getCache(userName)
+    const userCache = Characters.useUserCard.getState().getCache(charName)
+    const instructCache = Instructs.useInstruct.getState().getCache(charName, userName)
+    return { characterCache, userCache, instructCache }
+}
+
+export const buildTextCompletionContext = (max_length: number, printTimings = true) => {
     const delta = performance.now()
     const bypassContextLength = mmkv.getBoolean(AppSettings.BypassContextLength)
-    const tokenizer =
-        mmkv.getString(Global.AppMode) === AppMode.LOCAL
-            ? Llama.useLlama.getState().tokenLength
-            : Tokenizer.useTokenizer.getState().getTokenCount
-
+    const tokenizer = Tokenizer.getTokenizer()
     const messages = [...(Chats.useChatState.getState().data?.messages ?? [])]
 
     const currentInstruct = Instructs.useInstruct.getState().replacedMacros()
 
-    const userCard = { ...Characters.useUserCard.getState().card }
-    const currentCard = { ...Characters.useCharacterCard.getState().card }
+    const { userCard, currentCard } = getCardData()
     const userName = userCard?.name ?? ''
     const charName = currentCard?.name ?? ''
+    const userCardData = (userCard?.description ?? '').trim()
+    const charCardData = (currentCard?.description ?? '').trim()
 
-    const characterCache = Characters.useCharacterCard.getState().getCache(userName)
-    const userCache = Characters.useUserCard.getState().getCache(charName)
-    const instructCache = Instructs.useInstruct.getState().getCache(charName, userName)
+    const { characterCache, userCache, instructCache } = getCaches(charName, userName)
 
-    const user_card_data = (userCard?.description ?? '').trim()
-    const char_card_data = (currentCard?.description ?? '').trim()
     let payload = ``
 
     // set suffix length as its always added
@@ -42,8 +51,8 @@ export const buildTextCompletionContext = (max_length: number) => {
         payload += `${currentInstruct.system_prompt}`
         payload_length += instructCache.system_prompt_length
     }
-    if (char_card_data) {
-        payload += char_card_data
+    if (charCardData) {
+        payload += charCardData
         payload_length += characterCache.description_length
     }
 
@@ -57,8 +66,8 @@ export const buildTextCompletionContext = (max_length: number) => {
         payload_length += characterCache.personality_length
     }
 
-    if (user_card_data) {
-        payload += user_card_data
+    if (userCardData) {
+        payload += userCardData
         payload_length += userCache.description_length
     }
     // suffix must be delayed for example messages
@@ -158,9 +167,11 @@ export const buildTextCompletionContext = (max_length: number) => {
     payload += currentInstruct.system_suffix
 
     payload = replaceMacros(payload + message_acc)
-    Logger.log(`Approximate Context Size: ${message_acc_length + payload_length} tokens`)
-    Logger.log(`${(performance.now() - delta).toFixed(2)}ms taken to build context`)
-    if (mmkv.getBoolean(AppSettings.PrintContext)) Logger.log(payload)
+    if (printTimings) {
+        Logger.info(`Approximate Context Size: ${message_acc_length + payload_length} tokens`)
+        Logger.info(`${(performance.now() - delta).toFixed(2)}ms taken to build context`)
+    }
+    if (mmkv.getBoolean(AppSettings.PrintContext)) Logger.info(payload)
 
     return payload
 }
@@ -176,22 +187,16 @@ export const buildChatCompletionContext = (
     const bypassContextLength = mmkv.getBoolean(AppSettings.BypassContextLength)
     if (config.request.completionType.type !== 'chatCompletions') return
     const completionFeats = config.request.completionType
-    const tokenizer =
-        mmkv.getString(Global.AppMode) === AppMode.LOCAL
-            ? Llama.useLlama.getState().tokenLength
-            : Tokenizer.useTokenizer.getState().getTokenCount
+    const tokenizer = Tokenizer.getTokenizer()
 
     const messages = [...(Chats.useChatState.getState().data?.messages ?? [])]
-    const userCard = { ...Characters.useUserCard.getState().card }
-    const currentCard = { ...Characters.useCharacterCard.getState().card }
     const currentInstruct = Instructs.useInstruct.getState().replacedMacros()
 
+    const { userCard, currentCard } = getCardData()
     const userName = userCard?.name ?? ''
     const charName = currentCard?.name ?? ''
 
-    const characterCache = Characters.useCharacterCard.getState().getCache(userName)
-    const userCache = Characters.useUserCard.getState().getCache(charName)
-    const instructCache = Instructs.useInstruct.getState().getCache(charName, userName)
+    const { characterCache, userCache, instructCache } = getCaches(charName, userName)
 
     const buffer = Chats.useChatState.getState().buffer
 
@@ -220,9 +225,7 @@ export const buildChatCompletionContext = (
         { role: completionFeats.systemRole, [completionFeats.contentName]: replaceMacros(initial) },
     ]
 
-    const messageBuffer: Message[] = config.features.useFirstMessage
-        ? [{ role: completionFeats.userRole, [completionFeats.contentName]: values.firstMessage }]
-        : []
+    const messageBuffer: Message[] = []
 
     let index = messages.length - 1
     for (const message of messages.reverse()) {
@@ -235,22 +238,32 @@ export const buildChatCompletionContext = (
         const name_length = currentInstruct.names ? tokenizer(name_string) : 0
         const len =
             Chats.useChatState.getState().getTokenCount(index) + name_length + timestamp_length
-        if (len > max_length && !bypassContextLength) break
+        if (total_length + len > max_length && !bypassContextLength) break
 
         const prefill = index === messages.length - 1 ? values.prefill : ''
 
+        if (!swipe_data.swipe && !prefill && index === messages.length - 1) {
+            index--
+            continue
+        }
+
         messageBuffer.push({
             role: message.is_user ? completionFeats.userRole : completionFeats.assistantRole,
-            content: replaceMacros(prefill + message.swipes[message.swipe_id].swipe),
+            content: replaceMacros(prefill + swipe_data.swipe),
         })
         total_length += len
         index--
     }
-    const output = [...payload, ...messageBuffer.reverse()]
+    if (config.features.useFirstMessage && values.firstMessage)
+        messageBuffer.push({
+            role: completionFeats.userRole,
+            [completionFeats.contentName]: values.firstMessage,
+        })
 
-    Logger.log(`Approximate Context Size: ${total_length} tokens`)
-    Logger.log(`${(performance.now() - delta).toFixed(2)}ms taken to build context`)
-    if (mmkv.getBoolean(AppSettings.PrintContext)) Logger.log(JSON.stringify(output))
+    const output = [...payload, ...messageBuffer.reverse()]
+    Logger.info(`Approximate Context Size: ${total_length} tokens`)
+    Logger.info(`${(performance.now() - delta).toFixed(2)}ms taken to build context`)
+    if (mmkv.getBoolean(AppSettings.PrintContext)) Logger.info(JSON.stringify(output))
 
     return output
 }

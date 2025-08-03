@@ -1,35 +1,23 @@
 import { FontAwesome } from '@expo/vector-icons'
-import { Style } from '@lib/utils/Global'
+import { Theme } from '@lib/theme/ThemeManager'
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, Linking } from 'react-native'
+import { Linking } from 'react-native'
+
+import ThemedButton from './ThemedButton'
 
 const SupportButton = () => {
+    const theme = Theme.useTheme()
+
     return (
-        <TouchableOpacity
+        <ThemedButton
             onPress={() => {
                 Linking.openURL('https://ko-fi.com/vali98')
             }}
-            style={styles.supportButton}>
-            <Text style={styles.supportText}>Support ChatterUI</Text>
-            <FontAwesome name="coffee" size={16} color={Style.getColor('primary-text1')} />
-        </TouchableOpacity>
+            variant="secondary"
+            label="Support ChatterUI"
+            icon={<FontAwesome name="coffee" size={16} color={theme.color.primary._700} />}
+        />
     )
 }
 
 export default SupportButton
-
-const styles = StyleSheet.create({
-    supportText: { color: Style.getColor('primary-text2'), paddingRight: 4 },
-
-    supportButton: {
-        alignSelf: 'center',
-        marginBottom: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderColor: Style.getColor('primary-brand'),
-        padding: 8,
-        paddingHorizontal: 16,
-        borderWidth: 1,
-        borderRadius: 16,
-    },
-})

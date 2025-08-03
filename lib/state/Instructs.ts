@@ -1,16 +1,14 @@
 import { db as database } from '@db'
 import { Tokenizer } from '@lib/engine/Tokenizer'
+import { Storage } from '@lib/enums/Storage'
 import { instructs } from 'db/schema'
 import { eq } from 'drizzle-orm'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { Logger } from './Logger'
-import { mmkv, mmkvStorage } from '../storage/MMKV'
-import { API } from '../constants/API'
-import { Global } from '../constants/GlobalValues'
-import { Llama } from '../engine/LlamaLocal'
-import { replaceMacros } from '../utils/Utils'
+import { mmkvStorage } from '../storage/MMKV'
+import { replaceMacros } from '../utils/Macros'
 
 const defaultBooleans = {
     wrap: false,
@@ -223,10 +221,7 @@ export namespace Instructs {
                             output_suffix_length: 0,
                             user_alignment_message_length: 0,
                         }
-                    const getTokenCount =
-                        mmkv.getString(Global.APIType) === API.LOCAL
-                            ? Llama.useLlama.getState().tokenLength
-                            : Tokenizer.useTokenizer.getState().getTokenCount
+                    const getTokenCount = Tokenizer.getTokenizer()
 
                     const newCache: InstructTokenCache = {
                         charName: charName,
@@ -247,7 +242,7 @@ export namespace Instructs {
                 replacedMacros: () => {
                     const rawinstruct = get().data
                     if (!rawinstruct) {
-                        Logger.log('Something wrong happened with Instruct data', true)
+                        Logger.errorToast('Something wrong happened with Instruct data')
                         return Instructs.defaultInstruct
                     }
                     const instruct = { ...rawinstruct }
@@ -260,7 +255,7 @@ export namespace Instructs {
                 },
             }),
             {
-                name: 'instruct-storage',
+                name: Storage.Instruct,
                 storage: createJSONStorage(() => mmkvStorage),
                 partialize: (state) => ({ data: state.data }),
                 version: 3,
@@ -269,7 +264,7 @@ export namespace Instructs {
                         persistedState.data.timestamp = false
                         persistedState.data.examples = true
                         persistedState.data.format_type = 0
-                        Logger.log('[INSTRUCT] Migrated to v1')
+                        Logger.info('[INSTRUCT] Migrated to v1')
                     }
                     if (version === 1) {
                         persistedState.data.last_output_prefix = persistedState.data.output_prefix
@@ -286,7 +281,7 @@ export namespace Instructs {
                                 .where(eq(instructs.id, item.id))
                         })
 
-                        Logger.log('[INSTRUCT] Migrated to v2')
+                        Logger.info('[INSTRUCT] Migrated to v2')
                     }
                     if (version === 2) {
                         persistedState.data.scenario = true
@@ -356,36 +351,9 @@ export namespace Instructs {
                 if (data === -1) data = newid
             }
         })
-        Logger.log('Default Instructs Successfully Generated')
+        Logger.info('Default Instructs Successfully Generated')
         return data === -1 ? 1 : data
     }
 }
 
-export type InstructType = {
-    id?: number
-    name: string
-    system_prompt: string
-    system_prefix: string
-    system_suffix: string
-    input_prefix: string
-    input_suffix: string
-    output_prefix: string
-    output_suffix: string
-    stop_sequence: string
-    activation_regex: string
-
-    user_alignment_message: string
-    wrap: boolean
-    macro: boolean
-    names: boolean
-    names_force_groups: boolean
-
-    timestamp: boolean
-    examples: boolean
-    format_type: number
-
-    last_output_prefix: string
-
-    scenario: boolean
-    personality: boolean
-}
+export type InstructType = Omit<typeof instructs.$inferSelect, 'id'> & { id?: number }

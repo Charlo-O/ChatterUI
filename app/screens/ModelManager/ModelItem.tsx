@@ -1,13 +1,14 @@
 import Alert from '@components/views/Alert'
 import TextBoxModal from '@components/views/TextBoxModal'
 import { AntDesign } from '@expo/vector-icons'
-import { Global, Style } from '@lib/utils/Global'
-import { GGMLNameMap, Llama, readableFileSize } from '@lib/engine/LlamaLocal'
+import { GGMLNameMap } from '@lib/engine/Local'
+import { Llama } from '@lib/engine/Local/LlamaLocal'
+import { Model } from '@lib/engine/Local/Model'
+import { Theme } from '@lib/theme/ThemeManager'
+import { readableFileSize } from '@lib/utils/File'
 import { ModelDataType } from 'db/schema'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useMMKVObject } from 'react-native-mmkv'
-import Animated, { Easing, SlideInLeft } from 'react-native-reanimated'
 
 type ModelItemProps = {
     item: ModelDataType
@@ -24,6 +25,9 @@ const ModelItem: React.FC<ModelItemProps> = ({
     setModelLoading,
     index,
 }) => {
+    const styles = useStyles()
+    const { color } = Theme.useTheme()
+
     const { loadModel, unloadModel, modelId } = Llama.useLlama((state) => ({
         loadModel: state.load,
         unloadModel: state.unload,
@@ -31,11 +35,10 @@ const ModelItem: React.FC<ModelItemProps> = ({
     }))
 
     const [showEdit, setShowEdit] = useState(false)
-    const [autoLoad, setAutoLoad] = useMMKVObject<ModelDataType>(Global.LocalModel)
     //@ts-ignore
     const quant: string = item.quantization && GGMLNameMap[item.quantization]
     const disableDelete = modelId === item.id || modelLoading
-    const isInvalid = Llama.isInitialEntry(item)
+    const isInvalid = Model.isInitialEntry(item)
 
     const handleDeleteModel = () => {
         Alert.alert({
@@ -52,7 +55,10 @@ const ModelItem: React.FC<ModelItemProps> = ({
                 {
                     label: 'Delete Model',
                     onPress: async () => {
-                        await Llama.deleteModelById(item.id)
+                        if (modelId === item.id) {
+                            await unloadModel()
+                        }
+                        await Model.deleteModelById(item.id)
                     },
                     type: 'warning',
                 },
@@ -64,13 +70,11 @@ const ModelItem: React.FC<ModelItemProps> = ({
     const disableEdit = modelId === item.id || modelLoading || isInvalid
 
     return (
-        <Animated.View
-            style={styles.modelContainer}
-            entering={SlideInLeft.easing(Easing.inOut(Easing.cubic))}>
+        <View style={styles.modelContainer}>
             <TextBoxModal
                 booleans={[showEdit, setShowEdit]}
                 onConfirm={async (name) => {
-                    await Llama.updateName(name, item.id)
+                    await Model.updateName(name, item.id)
                 }}
                 title="Rename Model"
                 defaultValue={item.name}
@@ -111,7 +115,7 @@ const ModelItem: React.FC<ModelItemProps> = ({
                         name="edit"
                         style={styles.button}
                         size={24}
-                        color={Style.getColor(disableEdit ? 'primary-text3' : 'primary-text1')}
+                        color={disableEdit ? color.text._600 : color.text._300}
                     />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -123,9 +127,7 @@ const ModelItem: React.FC<ModelItemProps> = ({
                         name="delete"
                         style={styles.button}
                         size={24}
-                        color={Style.getColor(
-                            disableDelete ? 'primary-text3' : 'destructive-brand'
-                        )}
+                        color={disableDelete ? color.text._600 : color.error._500}
                     />
                 </TouchableOpacity>
                 {modelId !== item.id && (
@@ -134,14 +136,13 @@ const ModelItem: React.FC<ModelItemProps> = ({
                         onPress={async () => {
                             setModelLoading(true)
                             await loadModel(item)
-                            setAutoLoad(item)
                             setModelLoading(false)
                         }}>
                         <AntDesign
                             name="playcircleo"
                             style={styles.button}
                             size={24}
-                            color={Style.getColor(disable ? 'primary-text3' : 'primary-text1')}
+                            color={disable ? color.text._600 : color.text._300}
                         />
                     </TouchableOpacity>
                 )}
@@ -155,63 +156,68 @@ const ModelItem: React.FC<ModelItemProps> = ({
                             name="closecircleo"
                             style={styles.button}
                             size={24}
-                            color={Style.getColor('primary-text1')}
+                            color={color.text._100}
                         />
                     </TouchableOpacity>
                 )}
             </View>
-        </Animated.View>
+        </View>
     )
 }
 
 export default ModelItem
 
-const styles = StyleSheet.create({
-    modelContainer: {
-        borderRadius: 12,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        backgroundColor: Style.getColor('primary-surface2'),
-        marginBottom: 12,
-    },
+const useStyles = () => {
+    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
 
-    tagContainer: {
-        paddingTop: 12,
-        paddingBottom: 8,
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        flexWrap: 'wrap',
-    },
+    return StyleSheet.create({
+        modelContainer: {
+            borderRadius: spacing.l,
+            paddingVertical: spacing.l,
+            paddingHorizontal: spacing.xl2,
+            backgroundColor: color.neutral._200,
+            marginBottom: spacing.l,
+        },
 
-    tag: {
-        borderRadius: 4,
-        borderColor: Style.getColor('primary-surface4'),
-        borderWidth: 1,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        marginRight: 4,
-        color: Style.getColor('primary-text2'),
-    },
-    title: {
-        fontSize: 16,
-        color: Style.getColor('primary-text1'),
-    },
+        tagContainer: {
+            columnGap: 4,
+            rowGap: 4,
+            paddingTop: spacing.m,
+            paddingBottom: spacing.m,
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            flexWrap: 'wrap',
+        },
 
-    subtitle: {
-        color: Style.getColor('primary-text2'),
-    },
+        tag: {
+            borderRadius: borderRadius.m,
+            borderColor: color.primary._300,
+            borderWidth: 1,
+            paddingHorizontal: spacing.m,
+            paddingVertical: spacing.s,
+            color: color.text._300,
+        },
+        title: {
+            fontSize: fontSize.l,
+            color: color.text._100,
+        },
 
-    buttonContainer: {
-        flexDirection: 'row',
-        flex: 1,
-        justifyContent: 'space-between',
-        marginTop: 12,
-        borderColor: Style.getColor('primary-surface3'),
-    },
+        subtitle: {
+            color: color.text._400,
+        },
 
-    button: {
-        flex: 1,
-        paddingVertical: 8,
-        paddingHorizontal: 32,
-    },
-})
+        buttonContainer: {
+            flexDirection: 'row',
+            flex: 1,
+            justifyContent: 'space-between',
+            marginTop: spacing.l,
+            borderColor: color.neutral._300,
+        },
+
+        button: {
+            flex: 1,
+            paddingVertical: spacing.m,
+            paddingHorizontal: spacing.xl3,
+        },
+    })
+}

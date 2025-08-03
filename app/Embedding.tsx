@@ -1,6 +1,6 @@
 import { rawdb } from '@db'
-import { LlamaPreset } from '@lib/engine/LlamaLocal'
-import { Global, mmkv, Style } from '@lib/utils/Global'
+import { LlamaConfig } from '@lib/engine/Local/LlamaLocal'
+import { Theme } from '@lib/theme/ThemeManager'
 import { initLlama, LlamaContext } from 'cui-llama.rn'
 import { NativeEmbeddingResult } from 'cui-llama.rn/lib/typescript/NativeRNLlama'
 import { documentDirectory } from 'expo-file-system'
@@ -20,6 +20,7 @@ import { create } from 'zustand'
 }*/
 
 const EmbeddingScreen = () => {
+    const { color } = Theme.useTheme()
     const { loadModel, getEmbed } = EmbeddingState.useEmbedding((state) => ({
         loadModel: state.loadModel,
         getEmbed: state.getEmbedding,
@@ -52,22 +53,19 @@ const EmbeddingScreen = () => {
             <Text>Embedding</Text>
             <TouchableOpacity
                 onPress={() => {
-                    const preset = mmkv.getString(Global.LocalPreset)
-                    if (!preset) return
-                    const presetJson = JSON.parse(preset) as LlamaPreset
-                    loadModel(presetJson)
+                    console.log('Reimplement if needed')
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Load Model</Text>
+                <Text style={{ color: color.text._100 }}>Load Model</Text>
             </TouchableOpacity>
             <TextInput
                 value={t1}
                 onChangeText={sett1}
                 style={{
-                    color: Style.getColor('primary-text1'),
+                    color: color.text._100,
                     margin: 8,
                     padding: 2,
                     borderRadius: 2,
-                    borderColor: Style.getColor('primary-text2'),
+                    borderColor: color.text._400,
                     borderWidth: 1,
                 }}
             />
@@ -75,11 +73,11 @@ const EmbeddingScreen = () => {
                 value={t2}
                 onChangeText={sett2}
                 style={{
-                    color: Style.getColor('primary-text1'),
+                    color: color.text._100,
                     margin: 8,
                     padding: 2,
                     borderRadius: 2,
-                    borderColor: Style.getColor('primary-text2'),
+                    borderColor: color.text._400,
                     borderWidth: 1,
                 }}
             />
@@ -98,40 +96,40 @@ const EmbeddingScreen = () => {
                     })
                     setoutput(`Score: ${dotprod / (Math.sqrt(s1) * Math.sqrt(s2))}`)
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Test Embedding</Text>
+                <Text style={{ color: color.text._100 }}>Test Embedding</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={async () => {
                     sett1('')
                     sett2('')
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>CLEAR</Text>
+                <Text style={{ color: color.text._100 }}>CLEAR</Text>
             </TouchableOpacity>
-            <Text style={{ color: Style.getColor('primary-text1') }}>{output}</Text>
-            <View style={{ margin: 40 }} />
+            <Text style={{ color: color.text._100 }}>{output}</Text>
+            <View style={{ margin: 16 }} />
             <TouchableOpacity
                 onPress={async () => {
                     deleteTables()
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Delete DB</Text>
+                <Text style={{ color: color.text._100 }}>Delete DB</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={async () => {
                     createTables()
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Make DB</Text>
+                <Text style={{ color: color.text._100 }}>Make DB</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={async () => {
                     insertData()
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Insert data</Text>
+                <Text style={{ color: color.text._100 }}>Insert data</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={async () => {
                     getData()
                 }}>
-                <Text style={{ color: Style.getColor('primary-text1') }}>Query</Text>
+                <Text style={{ color: color.text._100 }}>Query</Text>
             </TouchableOpacity>
         </View>
     )
@@ -185,14 +183,14 @@ const insertData = async () => {
 
 type EmbeddingStoreState = {
     model: undefined | LlamaContext
-    loadModel: (preset: LlamaPreset) => Promise<void>
+    loadModel: (preset: LlamaConfig) => Promise<void>
     getEmbedding: (text: string) => Promise<NativeEmbeddingResult | undefined>
 }
 
 export namespace EmbeddingState {
     export const useEmbedding = create<EmbeddingStoreState>()((set, get) => ({
         model: undefined,
-        loadModel: async (preset: LlamaPreset) => {
+        loadModel: async (preset: LlamaConfig) => {
             const model = await initLlama({
                 model: documentDirectory + 'models/allminifp16.gguf',
                 n_threads: preset.threads,

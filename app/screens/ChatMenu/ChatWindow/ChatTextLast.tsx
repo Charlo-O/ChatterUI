@@ -1,7 +1,9 @@
+import ThemedButton from '@components/buttons/ThemedButton'
 import AnimatedEllipsis from '@components/text/AnimatedEllipsis'
-import { useInference } from '@lib/state/Chat'
-import { Chats, MarkdownStyle } from '@lib/utils/Global'
-import { useEffect, useRef } from 'react'
+import { useTextFilter } from '@lib/hooks/TextFilter'
+import { MarkdownStyle } from '@lib/markdown/Markdown'
+import { Chats, useInference } from '@lib/state/Chat'
+import { useEffect, useRef, useState } from 'react'
 import { View, Animated, Easing, useAnimatedValue } from 'react-native'
 import Markdown from 'react-native-markdown-display'
 
@@ -11,9 +13,12 @@ type ChatTextProps = {
 }
 
 const ChatTextLast: React.FC<ChatTextProps> = ({ nowGenerating, index }) => {
+    const markdownStyle = MarkdownStyle.useMarkdownStyle()
+
     const { swipeText, swipeId } = Chats.useSwipeData(index)
     const { buffer } = Chats.useBuffer()
 
+    const [showHidden, setShowHidden] = useState(false)
     const viewRef = useRef<View>(null)
     const currentSwipeId = useInference((state) => state.currentSwipeId)
     const animHeight = useAnimatedValue(-1)
@@ -32,13 +37,14 @@ const ChatTextLast: React.FC<ChatTextProps> = ({ nowGenerating, index }) => {
     }
 
     const updateHeight = () => {
-        const oveflowPadding = 12
-        const showPadding = nowGenerating && buffer !== ''
-
+        if (firstRender.current) return
+        const showPadding = nowGenerating && buffer.data !== ''
+        const overflowPadding = showPadding ? 12 : 0
         if (viewRef.current) {
             viewRef.current.measure((x, y, width, measuredHeight) => {
-                const newHeight = measuredHeight + (showPadding ? oveflowPadding : 0)
+                const newHeight = measuredHeight + overflowPadding
                 if (targetHeight.current === newHeight) return
+                if (targetHeight.current > -1) animHeight.setValue(targetHeight.current)
                 handleAnimateHeight(newHeight)
                 targetHeight.current = newHeight
             })
@@ -47,24 +53,45 @@ const ChatTextLast: React.FC<ChatTextProps> = ({ nowGenerating, index }) => {
 
     useEffect(() => {
         if (firstRender.current) {
-            firstRender.current = false
-            return
+            return () => {
+                firstRender.current = false
+            }
         }
         requestAnimationFrame(() => updateHeight())
-    }, [buffer, swipeText, nowGenerating])
+    }, [nowGenerating, buffer, swipeText])
 
+    const filteredText = useTextFilter(swipeText?.trim() ?? '')
+    const renderedText = showHidden ? swipeText?.trim() : filteredText.result
     return (
         <Animated.View style={{ overflow: 'scroll', height: animHeight }}>
             <View style={{ minHeight: 10 }} ref={viewRef}>
-                {swipeId === currentSwipeId && nowGenerating && buffer === '' && (
+                {swipeId === currentSwipeId && nowGenerating && buffer.data === '' && (
                     <AnimatedEllipsis />
                 )}
                 <Markdown
+                    mergeStyle={false}
                     markdownit={MarkdownStyle.Rules}
                     rules={MarkdownStyle.RenderRules}
-                    style={MarkdownStyle.Styles}>
-                    {nowGenerating && swipeId === currentSwipeId ? buffer.trim() : swipeText.trim()}
+                    style={markdownStyle}>
+                    {nowGenerating && swipeId === currentSwipeId
+                        ? buffer.data.trim()
+                        : renderedText}
                 </Markdown>
+                {filteredText.found && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                        <ThemedButton
+                            onPress={() => setShowHidden(!showHidden)}
+                            variant="secondary"
+                            label={showHidden ? 'Hide Filtered' : 'Show Filtered'}
+                            labelStyle={{ flex: 0, fontSize: 12 }}
+                            buttonStyle={{
+                                paddingVertical: 0,
+                                paddingHorizontal: 4,
+                                borderWidth: 0,
+                            }}
+                        />
+                    </View>
+                )}
             </View>
         </Animated.View>
     )

@@ -1,4 +1,9 @@
-import { APISampler } from '@lib/engine/APILegacy/BaseAPI'
+import { SamplerID } from '@lib/constants/SamplerData'
+
+export type APISampler = {
+    samplerID: SamplerID
+    externalName: string
+}
 
 // These are for ChatterUI's interface
 // When a user wishes to add new 'X' API, we can control which fields remain default, and which can be edited
@@ -65,7 +70,7 @@ export interface APIRequestFormat {
 // cohere is defined, however its format now supports openai
 // custom formats allows you to define a string with macros instead
 export type APIPayloadFormat =
-    | { type: 'openai' | 'ollama' | 'cohere' | 'horde' }
+    | { type: 'openai' | 'ollama' | 'cohere' | 'horde' | 'claude' }
     | { type: 'custom'; customPayload: string }
 
 export interface APIModelFormat {

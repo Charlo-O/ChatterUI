@@ -19,12 +19,12 @@ export const characters = sqliteTable('characters', {
     //character_book: text('character_book').default(''),
     image_id: integer('image_id', { mode: 'number' })
         .notNull()
-        .$defaultFn(() => new Date().getTime()),
+        .$defaultFn(() => Date.now()),
     creator: text('creator').notNull().default(''),
     character_version: text('character_version').notNull().default(''),
     last_modified: integer('last_modified', { mode: 'number' })
-        .$defaultFn(() => new Date().getTime())
-        .$onUpdateFn(() => new Date().getTime()),
+        .$defaultFn(() => Date.now())
+        .$onUpdateFn(() => Date.now()),
     //.default(sql`(unixepoch('subsec')*1000)`)
     //.$onUpdate(() => sql`(unixepoch('subsec')*1000)`),
 })
@@ -96,9 +96,10 @@ export const chats = sqliteTable('chats', {
     character_id: integer('character_id', { mode: 'number' })
         .notNull()
         .references(() => characters.id, { onDelete: 'cascade' }),
+    user_id: integer('user_id', { mode: 'number' }),
     last_modified: integer('last_modified', { mode: 'number' })
-        .$defaultFn(() => new Date().getTime())
-        .$onUpdateFn(() => new Date().getTime()),
+        .$defaultFn(() => Date.now())
+        .$onUpdateFn(() => Date.now()),
     name: text('name').notNull().default('New Chat'),
 })
 
@@ -131,6 +132,7 @@ export const chatSwipes = sqliteTable('chat_swipes', {
     gen_finished: integer('gen_finished', { mode: 'timestamp' })
         .notNull()
         .$defaultFn(() => new Date()),
+    timings: text('timings', { mode: 'json' }).$type<CompletionTimings>(),
 })
 
 export const chatsRelations = relations(chats, ({ many, one }) => ({
@@ -256,10 +258,6 @@ export const characterLorebooksRelations = relations(characterLorebooks, ({ one 
 
 // TODO:
 
-////// presets - 1 table
-
-// export const presets = sqliteTable('presets', {})
-
 ////// group chats - 2 tables
 
 // export const groupChats = sqliteTable('group_chats', {})
@@ -279,14 +277,27 @@ export const model_data = sqliteTable('model_data', {
     context_length: integer('context_length').notNull(),
     architecture: text('architecture').notNull(),
     create_date: integer('create_date', { mode: 'number' })
-        .$defaultFn(() => new Date().getTime())
+        .$defaultFn(() => Date.now())
         .notNull(),
     last_modified: integer('last_modified', { mode: 'number' })
-        .$defaultFn(() => new Date().getTime())
+        .$defaultFn(() => Date.now())
         .notNull()
-        .$onUpdateFn(() => new Date().getTime()),
+        .$onUpdateFn(() => Date.now()),
 })
 
 // Types
 
 export type ModelDataType = typeof model_data.$inferSelect
+export type ChatSwipe = typeof chatSwipes.$inferSelect
+
+export type CompletionTimings = {
+    predicted_per_token_ms: number
+    predicted_per_second: number | null
+    predicted_ms: number
+    predicted_n: number
+
+    prompt_per_token_ms: number
+    prompt_per_second: number | null
+    prompt_ms: number
+    prompt_n: number
+}

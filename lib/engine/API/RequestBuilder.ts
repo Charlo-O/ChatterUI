@@ -1,9 +1,8 @@
 import { SamplerID, Samplers } from '@lib/constants/SamplerData'
-import { APISampler } from '@lib/engine/APILegacy/BaseAPI'
+import { Instructs } from '@lib/state/Instructs'
 import { SamplersManager } from '@lib/state/SamplerState'
-import { Instructs } from '@lib/utils/Global'
 
-import { APIConfiguration, APIValues } from './APIBuilder.types'
+import { APIConfiguration, APISampler, APIValues } from './APIBuilder.types'
 import { buildChatCompletionContext, buildTextCompletionContext } from './ContextBuilder'
 
 export const buildRequest = (config: APIConfiguration, values: APIValues) => {
@@ -16,6 +15,8 @@ export const buildRequest = (config: APIConfiguration, values: APIValues) => {
             return cohereRequest(config, values)
         case 'horde':
             return hordeRequest(config, values)
+        case 'claude':
+            return claudeRequest(config, values)
         case 'custom':
             return customRequest(config, values)
     }
@@ -33,11 +34,18 @@ const openAIRequest = (config: APIConfiguration, values: APIValues) => {
 
 const ollamaRequest = (config: APIConfiguration, values: APIValues) => {
     const { payloadFields, model, stop, prompt } = buildFields(config, values)
+    let keep_alive = 5
+    if (payloadFields.keep_alive) {
+        keep_alive = payloadFields.keep_alive as number
+        delete payloadFields.keep_alive
+    }
+
     return {
         options: {
             ...payloadFields,
             ...stop,
         },
+        keep_alive: keep_alive + 'm',
         ...model,
         ...prompt,
         raw: true,
@@ -70,6 +78,32 @@ const cohereRequest = (config: APIConfiguration, values: APIValues) => {
         preamble: preamble.message,
         chat_history: history,
         [config.request.promptKey]: last?.message ?? '',
+    }
+}
+
+const claudeRequest = (config: APIConfiguration, values: APIValues) => {
+    const { payloadFields, model, stop, prompt } = buildFields(config, values)
+
+    const systemPrompt = Instructs.useInstruct.getState().data?.system_prompt
+    const systemRole =
+        config.request.completionType.type === 'chatCompletions'
+            ? config.request.completionType.systemRole
+            : 'system'
+    const promptObject = prompt?.[config.request.promptKey]
+    const finalPrompt = Array.isArray(promptObject)
+        ? {
+              [config.request.promptKey]: promptObject.filter(
+                  (item) => item.role !== systemRole && item['content']
+              ),
+          }
+        : prompt
+    return {
+        system: systemPrompt,
+        ...payloadFields,
+        stream: true,
+        ...model,
+        ...stop,
+        ...finalPrompt,
     }
 }
 
@@ -132,42 +166,48 @@ const customRequest = (config: APIConfiguration, values: APIValues) => {
 const buildFields = (config: APIConfiguration, values: APIValues) => {
     const payloadFields = getSamplerFields(config, values)
 
-    const contextLengthObject = config.request.samplerFields.filter(
-        (item) => item.samplerID === SamplerID.CONTEXT_LENGTH
-    )
-
-    const seedObject = config.request.samplerFields.filter(
-        (item) => item.samplerID === SamplerID.SEED
-    )
-
-    const lengthField = payloadFields?.[contextLengthObject?.[0]?.externalName]
-    const length = typeof lengthField === 'number' ? lengthField : 0
-
+    // Model Data
     const model = config.features.useModel
         ? {
               model: getModelName(config, values),
           }
         : {}
-
-    const modelLength = getModelContextLength(config, values)
-
+    // Stop Sequence
     const stop = config.request.useStop ? { [config.request.stopKey]: constructStopSequence() } : {}
 
-    if (contextLengthObject[0] && config.request.removeLength) {
-        delete payloadFields?.[contextLengthObject?.[0].externalName]
-    }
+    // Seed Data
+    const seedObject = config.request.samplerFields.filter(
+        (item) => item.samplerID === SamplerID.SEED
+    )
 
     if (seedObject[0] && config.request.removeSeedifNegative) {
         delete payloadFields?.[seedObject?.[0].externalName]
     }
 
-    const usedLength = config.model.useModelContextLength ? (modelLength ?? length) : length
+    // Context Length
+    const contextLengthObject = config.request.samplerFields.filter(
+        (item) => item.samplerID === SamplerID.CONTEXT_LENGTH
+    )
 
+    const instructLengthField = payloadFields?.[contextLengthObject?.[0]?.externalName]
+    if (instructLengthField) {
+        delete payloadFields?.[contextLengthObject?.[0].externalName]
+    }
+
+    const modelLengthField = getModelContextLength(config, values)
+    const instructLength =
+        typeof instructLengthField === 'number' ? instructLengthField : (modelLengthField ?? 0)
+    const modelLength = modelLengthField ?? instructLength
+    const length = config.model.useModelContextLength
+        ? Math.min(modelLength, instructLength)
+        : instructLength
+
+    // Prompt
     const prompt = {
         [config.request.promptKey]:
             config.request.completionType.type === 'chatCompletions'
-                ? buildChatCompletionContext(usedLength, config, values)
-                : buildTextCompletionContext(usedLength),
+                ? buildChatCompletionContext(length, config, values)
+                : buildTextCompletionContext(length),
     }
     return { payloadFields, model, stop, prompt, length }
 }

@@ -1,26 +1,29 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Style } from '@lib/utils/Global'
+import { useTranslation } from '@lib/hooks/useTranslation'
+import { Theme } from '@lib/theme/ThemeManager'
 import { Text, View } from 'react-native'
 
 const CharSearchEmpty = () => {
+    const { color, spacing, fontSize } = Theme.useTheme()
+    const { t } = useTranslation()
     return (
         <View
             style={{
-                paddingVertical: 16,
-                paddingHorizontal: 8,
+                paddingVertical: spacing.xl,
+                paddingHorizontal: spacing.m,
                 flex: 1,
                 alignItems: 'center',
-                marginTop: 30,
+                marginTop: spacing.xl3,
             }}>
-            <Ionicons name="search" color={Style.getColor('primary-text2')} size={60} />
+            <Ionicons name="search" color={color.text._400} size={60} />
             <Text
                 style={{
-                    color: Style.getColor('primary-text2'),
-                    marginTop: 16,
+                    color: color.text._400,
+                    marginTop: spacing.xl,
                     fontStyle: 'italic',
-                    fontSize: 16,
+                    fontSize: fontSize.l,
                 }}>
-                No Characters Match Search Result
+                {t('characters.noCharactersSearch')}
             </Text>
         </View>
     )

@@ -1,0 +1,146 @@
+{
+    "common": {
+        "tryAgain": "重试",
+        "loading": "加载中...",
+        "save": "保存",
+        "cancel": "取消",
+        "delete": "删除",
+        "edit": "编辑",
+        "add": "添加",
+        "search": "搜索",
+        "settings": "设置",
+        "about": "关于",
+        "close": "关闭",
+        "ok": "确定",
+        "yes": "是",
+        "no": "否",
+        "name": "名称",
+        "description": "描述",
+        "namePlaceholder": "名称...",
+        "enterName": "输入名称",
+        "discardChanges": "放弃更改",
+        "changeImage": "更换图片",
+        "viewImage": "查看图片",
+        "deleteImage": "删除图片",
+        "githubRepository": "GitHub 仓库"
+    },
+    "auth": {
+        "authenticationRequired": "需要身份验证",
+        "tryAgain": "重试"
+    },
+    "database": {
+        "migrationFailed": "数据库迁移失败！"
+    },
+    "characters": {
+        "noCharactersFound": "未找到角色。尝试导入一些！",
+        "noCharactersSearch": "没有角色匹配您的搜索",
+        "importCharacters": "导入角色",
+        "createCharacter": "创建角色",
+        "characterName": "角色名称",
+        "characterDescription": "角色描述",
+        "characterTags": "角色标签",
+        "characterAvatar": "角色头像",
+        "characterPersonality": "角色性格",
+        "characterInstructions": "角色指令",
+        "characterExampleConversation": "示例对话",
+        "editCharacter": "编辑角色",
+        "deleteCharacter": "删除角色",
+        "firstMessage": "首条消息",
+        "personality": "性格",
+        "scenario": "场景",
+        "exampleMessages": "示例消息",
+        "tags": "标签",
+        "cardSaved": "角色卡已保存！",
+        "enterCharacterLink": "输入角色链接或 Pygmalion 链接",
+        "filterTags": "筛选标签...",
+        "searchName": "搜索名称...",
+        "download": "下载",
+        "importFromFile": "从文件导入",
+        "sortBy": "排序方式",
+        "recent": "最近",
+        "noTagsUsed": "<未使用标签>",
+        "results": "结果",
+        "createNewCharacter": "创建新角色"
+    },
+    "chat": {
+        "newChat": "新对话",
+        "sendMessage": "发送消息",
+        "typeMessage": "输入消息...",
+        "chatHistory": "对话历史",
+        "clearChat": "清空对话",
+        "exportChat": "导出对话",
+        "importChat": "导入对话"
+    },
+    "settings": {
+        "appSettings": "应用设置",
+        "chatSettings": "对话设置",
+        "characterSettings": "角色设置",
+        "modelSettings": "模型设置",
+        "ttsSettings": "语音合成设置",
+        "notificationSettings": "通知设置",
+        "securitySettings": "安全设置",
+        "styleSettings": "样式设置",
+        "screenSettings": "屏幕设置",
+        "databaseSettings": "数据库设置",
+        "generatingSettings": "生成设置",
+        "themes": "主题",
+        "autoScroll": "自动滚动",
+        "autoScrollDescription": "生成期间自动滚动文本",
+        "useFirstMessage": "使用首条消息",
+        "useFirstMessageDescription": "禁用此功能将使新对话以空白开始，某些模型需要此设置",
+        "lockApp": "锁定应用",
+        "lockAppDescription": "需要用户身份验证才能打开应用。如果您未启用设备锁定，此功能将无法工作。",
+        "loadChatOnStartup": "启动时加载对话",
+        "loadChatOnStartupDescription": "启动时加载最近的对话",
+        "autoLoadUser": "自动加载用户",
+        "autoLoadUserDescription": "打开对话时，自动加载创建对话的用户",
+        "sendOnEnter": "按回车发送",
+        "sendOnEnterDescription": "按下回车键时提交消息",
+        "showTokensPerSecond": "显示每秒令牌数",
+        "showTokensPerSecondDescription": "使用本地模型时显示每秒令牌数"
+    },
+    "menu": {
+        "sampler": "采样器",
+        "formatting": "格式化",
+        "api": "API",
+        "models": "模型",
+        "tts": "语音合成",
+        "logs": "日志",
+        "about": "关于",
+        "settings": "设置",
+        "mainMenu": "主菜单"
+    },
+    "dev": {
+        "devBuild": "开发版本",
+        "devMode": "开发模式",
+        "components": "[开发] 组件",
+        "colorTest": "[开发] 颜色测试",
+        "markdown": "[开发] Markdown",
+        "disableDevMode": "禁用开发模式"
+    },
+    "errors": {
+        "generalError": "发生错误",
+        "networkError": "网络错误",
+        "fileError": "文件错误",
+        "permissionError": "权限被拒绝",
+        "errorDeletingSwipe": "删除滑动时出错",
+        "importingNotImplemented": "导入功能未实现"
+    },
+    "validation": {
+        "nameCannotBeEmpty": "名称不能为空",
+        "emptyNameDiscouraged": "不建议使用空名称！"
+    },
+    "user": {
+        "describeUser": "描述此用户..."
+    },
+    "sampler": {
+        "downloadedConfiguration": "已下载采样器配置！"
+    },
+    "about": {
+        "description": "ChatterUI 是由 Vali-98 开发的免费开源应用程序",
+        "supportMessage": "这个应用是我在空闲时间开发的激情项目。如果您喜欢这个应用，请考虑支持其开发！",
+        "donateMessage": "在此捐赠给 ChatterUI：",
+        "reportIssue": "有问题？在此报告：",
+        "reportIssueNote": "（别忘了添加您的日志！）"
+    }
+} 

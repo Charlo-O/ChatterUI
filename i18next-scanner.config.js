@@ -13,7 +13,7 @@ module.exports = {
             extensions: ['.js', '.jsx', '.ts', '.tsx'],
             fallbackKey: (ns, value) => value,
         },
-        lngs: ['en', 'es'],
+        lngs: ['en', 'zh'],
         ns: ['translation'],
         defaultLng: 'en',
         defaultNs: 'translation',

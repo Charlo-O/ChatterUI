@@ -1,6 +1,6 @@
 import { db as database } from '@db'
 import { Tokenizer } from '@lib/engine/Tokenizer'
-import { copyFileRes, writeFile } from 'cui-fs'
+import { Storage } from '@lib/enums/Storage'
 import {
     characterGreetings,
     characterTags,
@@ -10,21 +10,20 @@ import {
     chats,
     tags,
 } from 'db/schema'
-import { desc, eq, inArray, notInArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { randomUUID } from 'expo-crypto'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FS from 'expo-file-system'
 import { useEffect } from 'react'
+import { z } from 'zod'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { Logger } from './Logger'
-import { API } from '../constants/API'
-import { Global } from '../constants/GlobalValues'
-import { Llama } from '../engine/LlamaLocal'
-import { mmkv, mmkvStorage } from '../storage/MMKV'
+import { mmkvStorage } from '../storage/MMKV'
 import { getPngChunkText } from '../utils/PNG'
+import { Asset } from 'expo-asset'
 
 export type CharInfo = {
     name: string
@@ -68,7 +67,8 @@ export namespace Characters {
                 tokenCache: undefined,
                 setCard: async (id: number) => {
                     const card = await db.query.card(id)
-                    set((state) => ({ ...state, card: card, id: id, tokenCache: undefined }))
+                    if (card)
+                        set((state) => ({ ...state, card: card, id: id, tokenCache: undefined }))
                     return card?.name
                 },
                 unloadCard: () => {
@@ -90,10 +90,10 @@ export namespace Characters {
                     const oldImageID = get().card?.image_id
                     const card = get().card
                     if (!id || !oldImageID || !card) {
-                        Logger.log('Could not get data, something very wrong has happned!', true)
+                        Logger.errorToast('Could not get data, something very wrong has happened!')
                         return
                     }
-                    const imageID = new Date().getTime()
+                    const imageID = Date.now()
                     await db.mutate.updateCardField('image_id', imageID, id)
                     await deleteImage(oldImageID)
                     await copyImage(sourceURI, imageID)
@@ -118,10 +118,7 @@ export namespace Characters {
                     const personality = replaceMacros(card.personality)
                     const scenario = replaceMacros(card.scenario)
 
-                    const getTokenCount =
-                        mmkv.getString(Global.APIType) === API.LOCAL
-                            ? Llama.useLlama.getState().tokenLength
-                            : Tokenizer.useTokenizer.getState().getTokenCount
+                    const getTokenCount = Tokenizer.getTokenizer()
 
                     const newCache: CharacterTokenCache = {
                         otherName: userName,
@@ -136,14 +133,14 @@ export namespace Characters {
                 },
             }),
             {
-                name: 'usercard-storage',
+                name: Storage.UserCard,
                 storage: createJSONStorage(() => mmkvStorage),
                 version: 2,
                 partialize: (state) => ({ id: state.id, card: state.card }),
                 migrate: async (persistedState: any, version) => {
                     if (version === 1) {
                         // migration from CharacterCardV2 to CharacterCardData
-                        Logger.log('Migrating User Store to v2')
+                        Logger.info('Migrating User Store to v2')
                         persistedState.id = undefined
                         persistedState.card = undefined
                     }
@@ -180,10 +177,10 @@ export namespace Characters {
             const oldImageID = get().card?.image_id
             const card = get().card
             if (!id || !oldImageID || !card) {
-                Logger.log('Could not get data, something very wrong has happned!', true)
+                Logger.errorToast('Could not get data, something very wrong has happned!')
                 return
             }
-            const imageID = new Date().getTime()
+            const imageID = Date.now()
             await db.mutate.updateCardField('image_id', imageID, id)
             await deleteImage(oldImageID)
             await copyImage(sourceURI, imageID)
@@ -209,10 +206,7 @@ export namespace Characters {
             const personality = replaceMacros(card.personality)
             const scenario = replaceMacros(card.scenario)
 
-            const getTokenCount =
-                mmkv.getString(Global.APIType) === API.LOCAL
-                    ? Llama.useLlama.getState().tokenLength
-                    : Tokenizer.useTokenizer.getState().getTokenCount
+            const getTokenCount = Tokenizer.getTokenizer()
 
             const newCache = {
                 otherName: charName,
@@ -375,34 +369,106 @@ export namespace Characters {
                 name: string,
                 type: 'user' | 'character' = 'character'
             ) => {
+                const { data } = createBlankV2Card(name)
+
                 const [{ id }, ..._] = await database
                     .insert(characters)
-                    .values({ ...TavernCardV2(name), type: type })
+                    .values({ ...data, type: type })
                     .returning({ id: characters.id })
                 return id
             }
 
             export const updateCard = async (card: CharacterCardData, cardID: number) => {
                 if (!card) return
-                await database
-                    .update(characters)
-                    .set({
-                        description: card.description,
-                        first_mes: card.first_mes,
-                        name: card.name,
-                        personality: card.personality,
-                        scenario: card.scenario,
-                        mes_example: card.mes_example,
-                    })
-                    .where(eq(characters.id, cardID))
-                await Promise.all(
-                    card.alternate_greetings.map(async (item) => {
+
+                try {
+                    await database
+                        .update(characters)
+                        .set({
+                            description: card.description,
+                            first_mes: card.first_mes,
+                            name: card.name,
+                            personality: card.personality,
+                            scenario: card.scenario,
+                            mes_example: card.mes_example,
+                        })
+                        .where(eq(characters.id, cardID))
+                    await Promise.all(
+                        card.alternate_greetings.map(async (item) => {
+                            await database
+                                .update(characterGreetings)
+                                .set({ greeting: item.greeting })
+                                .where(eq(characterGreetings.id, item.id))
+                        })
+                    )
+                    if (card.tags) {
+                        // create { tag: string }[]
+                        const newTags = card.tags
+                            .filter((item) => item.tag_id === -1)
+                            .map((tag) => ({ tag: tag.tag.tag }))
+
+                        // New tags are marked with -1
+                        const currentTagIDs = card.tags
+                            .filter((item) => item.tag_id !== -1)
+                            .map((item) => ({
+                                character_id: card.id,
+                                tag_id: item.tag.id,
+                            }))
+                        const newTagIDs: (typeof characterTags.$inferSelect)[] = []
+
+                        // optimistically add missing tags
+                        if (newTags.length !== 0) {
+                            await database
+                                .insert(tags)
+                                .values(newTags)
+                                .onConflictDoNothing()
+                                .returning({
+                                    id: tags.id,
+                                })
+                                // concat new tags to tagids
+                                .then((result) => {
+                                    newTagIDs.push(
+                                        ...result.map((item) => ({
+                                            character_id: card.id,
+                                            tag_id: item.id,
+                                        }))
+                                    )
+                                })
+                        }
+                        const mergedTags = [...currentTagIDs, ...newTagIDs]
+                        if (mergedTags.length !== 0)
+                            await database
+                                .insert(characterTags)
+                                .values(mergedTags)
+                                .onConflictDoNothing()
+
+                        const ids = mergedTags.map((item) => item.tag_id)
+                        // delete orphaned characterTags
+
                         await database
-                            .update(characterGreetings)
-                            .set({ greeting: item.greeting })
-                            .where(eq(characterGreetings.id, item.id))
-                    })
-                )
+                            .delete(characterTags)
+                            .where(
+                                and(
+                                    notInArray(characterTags.tag_id, ids),
+                                    eq(characterTags.character_id, card.id)
+                                )
+                            )
+
+                        // delete orphaned tags
+                        await database
+                            .delete(tags)
+                            .where(
+                                notInArray(
+                                    tags.id,
+                                    database
+                                        .select({ tag_id: characterTags.tag_id })
+                                        .from(characterTags)
+                                )
+                            )
+                    }
+                } catch (e) {
+                    Logger.warn(`${e}`)
+                }
             }
 
             export const addAltGreeting = async (charId: number) => {
@@ -424,16 +490,13 @@ export namespace Characters {
 
             // TODO: Proper per field updates, though not that expensive
             export const updateCardField = async (
-                field: keyof CharacterCardV2Data,
+                field: keyof NonNullable<CharacterCardData>,
                 data: any,
                 charId: number
             ) => {
-                if (field === 'tags') {
-                    // find tags and update
-                    return
-                }
                 if (field === 'alternate_greetings') {
                     // find greetings and update
+                    Logger.warn('ALT GREETINGS MODIFICATION NOT IMPLEMENTED')
                     return
                 }
                 await database
@@ -462,7 +525,7 @@ export namespace Characters {
             export const updateModified = async (charID: number) => {
                 await database
                     .update(characters)
-                    .set({ last_modified: new Date().getTime() })
+                    .set({ last_modified: Date.now() })
                     .where(eq(characters.id, charID))
             }
 
@@ -492,7 +555,7 @@ export namespace Characters {
                             for (const greeting of greetingdata)
                                 await tx.insert(characterGreetings).values(greeting)
 
-                        if (data.tags.length !== 0) {
+                        if (data.tags && data?.tags?.length !== 0) {
                             const tagsdata = data.tags.map((tag) => ({ tag: tag }))
                             for (const tag of tagsdata)
                                 await tx.insert(tags).values(tag).onConflictDoNothing()
@@ -509,7 +572,7 @@ export namespace Characters {
                         }
                         return image_id
                     } catch (error) {
-                        Logger.log(`Rolling back due to error: ` + error)
+                        Logger.errorToast(`Rolling back due to error: ` + error)
                         tx.rollback()
                         return undefined
                     }
@@ -521,7 +584,7 @@ export namespace Characters {
                 const card = await db.query.card(charId)
 
                 if (!card) {
-                    Logger.log('Failed to copy card: Card does not exit', true)
+                    Logger.errorToast('Failed to copy card: Card does not exit')
                     return
                 }
                 const imageInfo = await FS.getInfoAsync(getImageDir(card.image_id))
@@ -532,17 +595,17 @@ export namespace Characters {
                         from: getImageDir(card.image_id),
                         to: cacheLoc,
                     })
-                const now = new Date().getTime()
+                const now = Date.now()
                 card.last_modified = now
                 card.image_id = now
-                const cv2 = cardDataToCV2(card)
+                const cv2 = convertDBDataToCV2(card)
                 if (!cv2) {
-                    Logger.log('Failed to copy card', true)
+                    Logger.errorToast('Failed to copy card')
                     return
                 }
                 await createCharacter(cv2, cacheLoc)
-                    .then(() => Logger.log(`Card cloned: ${card.name}`))
-                    .catch((e) => Logger.log(`Failed to clone card: ${e}`))
+                    .then(() => Logger.info(`Card cloned: ${card.name}`))
+                    .catch((e) => Logger.info(`Failed to clone card: ${e}`))
             }
         }
     }
@@ -558,17 +621,13 @@ export namespace Characters {
         })
     }
 
-    export const cardDataToCV2 = (data: CharacterCardData): CharacterCardV2 | undefined => {
-        if (!data) return
-
+    export const convertDBDataToCV2 = (data: NonNullable<CharacterCardData>): CharacterCardV2 => {
         const { id, ...rest } = data
-
         return {
             spec: 'chara_card_v2',
             spec_version: '2.0',
             data: {
                 ...rest,
-                last_modified: rest?.last_modified ?? 0, // assume this never actually fails
                 tags: rest.tags.map((item) => item.tag.tag),
                 alternate_greetings: rest.alternate_greetings.map((item) => item.greeting),
             },
@@ -578,46 +637,69 @@ export namespace Characters {
     export const createCharacterFromImage = async (uri: string) => {
         const file = await FS.readAsStringAsync(uri, { encoding: FS.EncodingType.Base64 })
         if (!file) {
-            Logger.log(`Failed to create card - Image could not be retrieved`, true)
+            Logger.errorToast(`Failed to create card - Image could not be retrieved`)
             return
         }
 
-        const charactercard = getPngChunkText(file)
+        const card = getPngChunkText(file)
 
-        // WARNING: dangerous here, card is never verified to fulfill v2 card spec
-
-        if (charactercard === undefined) {
-            Logger.log('No character was found.', true)
-            return
-        }
-        if (charactercard?.spec_version !== '2.0') {
-            Logger.log('Character card must be in V 2.0 format.', true)
+        if (card === undefined) {
+            Logger.errorToast('No character was found.')
             return
         }
 
-        const newname = charactercard?.data?.name ?? charactercard.name
-
-        Logger.log(`Creating new character: ${newname}`)
-        return db.mutate.createCharacter(charactercard, uri)
+        await createCharacterFromV2JSON(card, uri)
     }
 
-    export const importCharacterFromImage = async () => {
-        return DocumentPicker.getDocumentAsync({
+    const createCharacterFromV1JSON = async (data: any, uri: string | undefined = undefined) => {
+        const result = characterCardV1Schema.safeParse(data)
+        if (result.error) {
+            Logger.errorToast('Invalid Character Card')
+            return
+        }
+        const converted = createBlankV2Card(result.data.name, result.data)
+
+        Logger.info(`Creating new character: ${result.data.name}`)
+        return db.mutate.createCharacter(converted, uri)
+    }
+
+    const createCharacterFromV2JSON = async (data: any, uri: string | undefined = undefined) => {
+        // check JSON def
+        const result = characterCardV2Schema.safeParse(data)
+        if (result.error) {
+            Logger.warnToast('V2 Parsing failed, falling back to V1')
+            return await createCharacterFromV1JSON(data, uri)
+        }
+
+        Logger.info(`Creating new character: ${result.data.data.name}`)
+        return await db.mutate.createCharacter(result.data, uri)
+    }
+
+    export const importCharacter = async () => {
+        const result = await DocumentPicker.getDocumentAsync({
             copyToCacheDirectory: true,
-            type: 'image/*',
+            type: ['image/*', 'application/json'],
             multiple: true,
-        }).then((result) => {
-            if (result.canceled) return
-            result.assets.map(async (item) => {
-                await createCharacterFromImage(item.uri).catch((e) =>
-                    Logger.log(`Failed to create card from '${item.name}': ${e}`)
-                )
-            })
+        })
+        if (result.canceled) return
+        result.assets.map(async (item) => {
+            const isPNG = item.mimeType?.includes('image/')
+            const isJSON = item.mimeType?.includes('application/json')
+            try {
+                if (isJSON) {
+                    const data = await FS.readAsStringAsync(item.uri)
+                    await createCharacterFromV2JSON(JSON.parse(data))
+                }
+
+                if (isPNG) await createCharacterFromImage(item.uri)
+            } catch (e) {
+                Logger.error(`Failed to create card from '${item.name}': ${e}`)
+            }
         })
     }
 
     export const importCharacterFromChub = async (character_id: string) => {
-        Logger.log(`Importing character from Chub: ${character_id}`, true)
+        Logger.infoToast(`Importing character from Chub: ${character_id}`)
         try {
             const res = await fetch('https://api.chub.ai/api/characters/download', {
                 method: 'POST',
@@ -634,15 +716,15 @@ export namespace Characters {
             let binaryString = ''
             dataArray.forEach((byte) => (binaryString += String.fromCharCode(byte)))
             const cardCacheDir = `${FS.cacheDirectory}${randomUUID()}.png`
-            await writeFile(cardCacheDir, btoa(binaryString), { encoding: 'base64' })
+            await FS.writeAsStringAsync(cardCacheDir, btoa(binaryString), { encoding: 'base64' })
             return createCharacterFromImage(cardCacheDir)
         } catch (error) {
-            Logger.log(`Could not retreive card. ${error}`)
+            Logger.error(`Could not retreive card. ${error}`)
         }
     }
 
     export const importCharacterFromPyg = async (character_id: string) => {
-        Logger.log(`Loading from Pygmalion with id: ${character_id}`, true)
+        Logger.infoToast(`Loading from Pygmalion with id: ${character_id}`)
 
         const query = await fetch(
             `https://server.pygmalion.chat/api/export/character/${character_id}/v2`,
@@ -655,7 +737,7 @@ export namespace Characters {
             }
         )
         if (query.status !== 200) {
-            Logger.log(`Failed to retrieve card from Pygmalion: ${query.status}`, true)
+            Logger.errorToast(`Failed to retrieve card from Pygmalion: ${query.status}`)
             return
         }
 
@@ -670,11 +752,10 @@ export namespace Characters {
         dataArray.forEach((byte) => (binaryString += String.fromCharCode(byte)))
         const uuid = randomUUID()
 
-        await writeFile(`${FS.cacheDirectory}${uuid}.png`, btoa(binaryString), {
-            encoding: 'base64',
-        })
+        const cardCacheDir = `${FS.cacheDirectory}${randomUUID()}.png`
+        await FS.writeAsStringAsync(cardCacheDir, btoa(binaryString), { encoding: 'base64' })
         await db.mutate.createCharacter(character, `${FS.cacheDirectory}${uuid}.png`)
-        Logger.log('Imported Character: ' + character.data.name)
+        Logger.info('Imported Character: ' + character.data.name)
     }
 
     export const importCharacterFromRemote = async (text: string) => {
@@ -696,7 +777,7 @@ export namespace Characters {
             if (character_id) return importCharacterFromPyg(character_id)
             else if (uuidRegex.test(path)) return importCharacterFromPyg(path)
             else {
-                Logger.log(`Failed to get id from Pygmalion URL`, true)
+                Logger.errorToast(`Failed to get id from Pygmalion URL`)
                 return
             }
         }
@@ -705,13 +786,13 @@ export namespace Characters {
             const path = url.pathname.replace('/characters/', '')
             if (/^[^/]+\/[^/]+$/.test(path)) return importCharacterFromChub(path)
             else {
-                Logger.log(`Failed to get id from Chub URL`, true)
+                Logger.errorToast(`Failed to get id from Chub URL`)
                 return
             }
         }
 
         // Regex checks for format of [name][/][character]
-        Logger.log(`URL not recognized`, true)
+        Logger.errorToast(`URL not recognized`)
     }
 
     export const getImageDir = (imageId: number) => {
@@ -725,7 +806,11 @@ export namespace Characters {
         const cardDefaultDir = `${FS.documentDirectory}appAssets/${pngName}`
 
         const fileinfo = await FS.getInfoAsync(cardDefaultDir)
-        if (!fileinfo.exists) await copyFileRes(resName, cardDefaultDir)
+        if (!fileinfo.exists) {
+            const [asset] = await Asset.loadAsync(require('./../../assets/models/aibot.png'))
+            await asset.downloadAsync()
+            if (asset.localUri) await FS.copyAsync({ from: asset.localUri, to: cardDefaultDir })
+        }
         await createCharacterFromImage(cardDefaultDir)
     }
 
@@ -745,70 +830,75 @@ export namespace Characters {
     }
 }
 
-export type CharacterCardV2Data = {
-    // field for chatterUI
-    image_id: number
+const characterCardV1Schema = z.object({
+    name: z.string(),
+    description: z.string(),
+    personality: z.string().catch(''),
+    scenario: z.string().catch(''),
+    first_mes: z.string().catch(''),
+    mes_example: z.string().catch(''),
+})
 
-    name: string
-    description: string
-    personality: string
-    scenario: string
-    first_mes: string
-    mes_example: string
+const characterCardV2DataSchema = z.object({
+    name: z.string(),
+    description: z.string().catch(''),
+    personality: z.string().catch(''),
+    scenario: z.string().catch(''),
+    first_mes: z.string().catch(''),
+    mes_example: z.string().catch(''),
 
-    // New fields start here
-    creator_notes: string
-    system_prompt: string
-    post_history_instructions: string
-    alternate_greetings: string[]
-    //for ChatterUI this will be removed into its own table
-    //character_book: string
+    creator_notes: z.string().catch(''),
+    system_prompt: z.string().catch(''),
+    post_history_instructions: z.string().catch(''),
+    creator: z.string().catch(''),
+    character_version: z.string().catch(''),
+    alternate_greetings: z.string().array().catch([]),
+    tags: z.string().array().catch([]),
+})
 
-    // May 8th additions
-    tags: string[]
-    creator: string
-    character_version: string
-    //extensions: {},
-    last_modified: number | null
-}
+const characterCardV2Schema = z.object({
+    spec: z.literal('chara_card_v2'),
+    spec_version: z.literal('2.0'),
+    data: characterCardV2DataSchema,
+})
 
-export type CharacterCardV2 = {
-    spec: string
-    spec_version: string
-    data: CharacterCardV2Data
-}
+type CharaterCardV1 = z.infer<typeof characterCardV1Schema>
 
-const TavernCardV2 = (name: string) => {
+type CharacterCardV2Data = z.infer<typeof characterCardV2DataSchema>
+
+type CharacterCardV2 = z.infer<typeof characterCardV2Schema>
+
+const createBlankV2Card = (
+    name: string,
+    options: {
+        description: string
+        personality: string
+        scenario: string
+        first_mes: string
+        mes_example: string
+    } = { description: '', personality: '', scenario: '', first_mes: '', mes_example: '' }
+): CharacterCardV2 => {
     return {
-        name: name,
-        description: '',
-        personality: '',
-        scenario: '',
-        first_mes: '',
-        mes_example: '',
-
         spec: 'chara_card_v2',
         spec_version: '2.0',
         data: {
             name: name,
-            description: '',
-            personality: '',
-            scenario: '',
-            first_mes: '',
-            mes_example: '',
+            description: options.description,
+            personality: options.personality,
+            scenario: options.scenario,
+            first_mes: options.first_mes,
+            mes_example: options.mes_example,
 
             // New fields start here
             creator_notes: '',
             system_prompt: '',
             post_history_instructions: '',
             alternate_greetings: [],
-            character_book: '',
 
             // May 8th additions
             tags: [],
             creator: '',
             character_version: '',
-            extensions: {},
         },
     }
 }
@@ -836,3 +926,4 @@ export const replaceMacros = (text: string) => {
     for (const rule of rules) newtext = newtext.replaceAll(rule.macro, rule.value)
     return newtext
 }
+

@@ -1,4 +1,4 @@
-import { Logger } from '@lib/utils/Global'
+import { Logger } from '@lib/state/Logger'
 import { fetch } from 'expo/fetch'
 
 type SSEValues = {
@@ -35,7 +35,7 @@ export class SSEFetch {
             })
 
             if (res.status !== 200 || !res.body) {
-                Logger.log(await res.text())
+                Logger.error(await res.text())
                 return this.onError()
             }
             this.closeStream = res.body.cancel
@@ -48,6 +48,7 @@ export class SSEFetch {
             if (this.abortController.signal.aborted) {
                 Logger.debug('Abort caught')
             }
+            Logger.error('Request Failed: ' + e)
         } finally {
             this.onClose()
         }

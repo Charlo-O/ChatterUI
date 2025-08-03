@@ -59,9 +59,9 @@ export const defaultTemplates: APIConfiguration[] = [
 
         model: {
             useModelContextLength: false,
-            nameParser: '',
+            nameParser: 'id',
             contextSizeParser: '',
-            modelListParser: '',
+            modelListParser: 'data',
         },
 
         ui: {
@@ -87,7 +87,7 @@ export const defaultTemplates: APIConfiguration[] = [
         features: {
             usePrefill: false,
             useFirstMessage: false,
-            useKey: false,
+            useKey: true,
             useModel: false,
             multipleModels: false,
         },
@@ -124,8 +124,8 @@ export const defaultTemplates: APIConfiguration[] = [
             completionType: {
                 type: 'textCompletions',
             },
-            authHeader: '',
-            authPrefix: '',
+            authHeader: 'Authorization',
+            authPrefix: 'Bearer ',
             responseParsePattern: 'token',
             useStop: true,
             stopKey: 'stop_sequence',
@@ -225,7 +225,7 @@ export const defaultTemplates: APIConfiguration[] = [
 
         defaultValues: {
             endpoint: 'http://127.0.0.1/api/generate',
-            modelEndpoint: 'http://127.0.0.1/api/models',
+            modelEndpoint: 'http://127.0.0.1/api/tags',
             prefill: '',
             firstMessage: '',
             key: '',
@@ -246,9 +246,7 @@ export const defaultTemplates: APIConfiguration[] = [
                 { externalName: 'num_ctx', samplerID: SamplerID.CONTEXT_LENGTH },
                 { externalName: 'num_predict', samplerID: SamplerID.GENERATED_LENGTH },
                 { externalName: 'repeat_penalty', samplerID: SamplerID.REPETITION_PENALTY },
-                { externalName: 'rep_pen_range', samplerID: SamplerID.REPETITION_PENALTY_RANGE },
                 { externalName: 'temperature', samplerID: SamplerID.TEMPERATURE },
-                { externalName: 'tfs_z', samplerID: SamplerID.TAIL_FREE_SAMPLING },
                 { externalName: 'top_p', samplerID: SamplerID.TOP_P },
                 { externalName: 'top_k', samplerID: SamplerID.TOP_K },
                 { externalName: 'typical_p', samplerID: SamplerID.TYPICAL },
@@ -258,6 +256,7 @@ export const defaultTemplates: APIConfiguration[] = [
                 { externalName: 'presence_penalty', samplerID: SamplerID.PRESENCE_PENALTY },
                 { externalName: 'frequency_penalty', samplerID: SamplerID.FREQUENCY_PENALTY },
                 { externalName: 'seed', samplerID: SamplerID.SEED },
+                { externalName: 'keep_alive', samplerID: SamplerID.KEEP_ALIVE_DURATION },
             ],
             completionType: { type: 'textCompletions' },
             authHeader: '',
@@ -293,7 +292,7 @@ export const defaultTemplates: APIConfiguration[] = [
 
         defaultValues: {
             endpoint: 'https://api.anthropic.com/v1/messages',
-            modelEndpoint: '{{CLAUDE}}',
+            modelEndpoint: 'https://api.anthropic.com/v1/models',
             prefill: '',
             firstMessage: '',
             key: '',
@@ -304,7 +303,7 @@ export const defaultTemplates: APIConfiguration[] = [
             useKey: true,
             useModel: true,
             usePrefill: true,
-            useFirstMessage: true,
+            useFirstMessage: false,
             multipleModels: false,
         },
 
@@ -325,24 +324,24 @@ export const defaultTemplates: APIConfiguration[] = [
                 assistantRole: 'assistant',
                 contentName: 'content',
             },
-            authHeader: '',
+            authHeader: 'x-api-key',
             authPrefix: '',
-            responseParsePattern: 'choices.0.text',
+            responseParsePattern: 'delta.text',
             useStop: true,
             stopKey: 'stop_sequences',
-            promptKey: 'prompt',
+            promptKey: 'messages',
             removeLength: true,
         },
 
         payload: {
-            type: 'openai',
+            type: 'claude',
         },
 
         model: {
             useModelContextLength: false,
-            nameParser: 'name',
+            nameParser: 'id',
             contextSizeParser: '',
-            modelListParser: 'models',
+            modelListParser: 'data',
         },
 
         ui: {
@@ -447,7 +446,8 @@ export const defaultTemplates: APIConfiguration[] = [
             samplerFields: [
                 { externalName: 'max_context_length', samplerID: SamplerID.CONTEXT_LENGTH },
                 { externalName: 'max_tokens', samplerID: SamplerID.GENERATED_LENGTH },
-                { externalName: 'stream', samplerID: SamplerID.REPETITION_PENALTY },
+                { externalName: 'include_reasoning', samplerID: SamplerID.INCLUDE_REASONING },
+                { externalName: 'stream', samplerID: SamplerID.STREAMING },
                 { externalName: 'temperature', samplerID: SamplerID.TEMPERATURE },
                 { externalName: 'presence_penalty', samplerID: SamplerID.PRESENCE_PENALTY },
                 { externalName: 'frequency_penalty', samplerID: SamplerID.FREQUENCY_PENALTY },
@@ -469,6 +469,7 @@ export const defaultTemplates: APIConfiguration[] = [
             stopKey: 'stop',
             promptKey: 'messages',
             removeLength: true,
+            removeSeedifNegative: true,
         },
 
         payload: {
@@ -551,6 +552,72 @@ export const defaultTemplates: APIConfiguration[] = [
         ui: {
             editableCompletionPath: false,
             editableModelPath: false,
+            selectableModel: true,
+        },
+    },
+
+    // Google AI Studio
+    {
+        version: 1,
+        name: 'Google AI Studio',
+
+        defaultValues: {
+            endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+            modelEndpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/models',
+            prefill: '',
+            firstMessage: '',
+            key: '',
+            model: undefined,
+        },
+
+        features: {
+            usePrefill: false,
+            useFirstMessage: false,
+            useKey: true,
+            useModel: true,
+            multipleModels: false,
+        },
+
+        request: {
+            requestType: 'stream',
+            samplerFields: [
+                { externalName: 'max_context_length', samplerID: SamplerID.CONTEXT_LENGTH },
+                { externalName: 'max_tokens', samplerID: SamplerID.GENERATED_LENGTH },
+                { externalName: 'stream', samplerID: SamplerID.STREAMING },
+                { externalName: 'temperature', samplerID: SamplerID.TEMPERATURE },
+                { externalName: 'top_p', samplerID: SamplerID.TOP_P },
+                { externalName: 'presence_penalty', samplerID: SamplerID.PRESENCE_PENALTY },
+            ],
+            completionType: {
+                type: 'chatCompletions',
+                userRole: 'user',
+                systemRole: 'system',
+                assistantRole: 'assistant',
+                contentName: 'content',
+            },
+            authHeader: 'Authorization',
+            authPrefix: 'Bearer ',
+            responseParsePattern: 'choices.0.delta.content',
+            useStop: true,
+            stopKey: 'stop',
+            promptKey: 'messages',
+            removeLength: true,
+        },
+
+        payload: {
+            type: 'openai',
+        },
+
+        model: {
+            useModelContextLength: false,
+            nameParser: 'id',
+            contextSizeParser: '',
+            modelListParser: 'data',
+        },
+
+        ui: {
+            editableCompletionPath: true,
+            editableModelPath: true,
             selectableModel: true,
         },
     },
@@ -649,7 +716,6 @@ export const defaultTemplates: APIConfiguration[] = [
                 { externalName: 'max_context_length', samplerID: SamplerID.CONTEXT_LENGTH },
                 { externalName: 'max_tokens', samplerID: SamplerID.GENERATED_LENGTH },
                 { externalName: 'stream', samplerID: SamplerID.STREAMING },
-                { externalName: 'rep_pen', samplerID: SamplerID.REPETITION_PENALTY },
                 { externalName: 'temperature', samplerID: SamplerID.TEMPERATURE },
                 { externalName: 'min_p', samplerID: SamplerID.MIN_P },
                 { externalName: 'top_a', samplerID: SamplerID.TOP_A },
@@ -661,10 +727,10 @@ export const defaultTemplates: APIConfiguration[] = [
                 { externalName: 'seed', samplerID: SamplerID.SEED },
                 { externalName: 'typical', samplerID: SamplerID.TYPICAL },
                 { externalName: 'repetition_penalty', samplerID: SamplerID.REPETITION_PENALTY },
-                { externalName: 'rep_pen_range', samplerID: SamplerID.REPETITION_PENALTY_RANGE },
-
-                { externalName: 'sampler_seed', samplerID: SamplerID.SEED },
-
+                {
+                    externalName: 'repetition_penalty_range',
+                    samplerID: SamplerID.REPETITION_PENALTY_RANGE,
+                },
                 { externalName: 'mirostat', samplerID: SamplerID.MIROSTAT_MODE },
                 { externalName: 'mirostat_tau', samplerID: SamplerID.MIROSTAT_TAU },
                 { externalName: 'mirostat_eta', samplerID: SamplerID.MIROSTAT_ETA },
@@ -684,7 +750,7 @@ export const defaultTemplates: APIConfiguration[] = [
             responseParsePattern: 'choices.0.text',
             useStop: true,
             stopKey: 'stop',
-            promptKey: 'messages',
+            promptKey: 'prompt',
             removeLength: true,
         },
 
@@ -706,3 +772,4 @@ export const defaultTemplates: APIConfiguration[] = [
         },
     },
 ]
+

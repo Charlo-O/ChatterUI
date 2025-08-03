@@ -4,6 +4,7 @@ import {
     SamplerID,
     Samplers,
 } from '@lib/constants/SamplerData'
+import { Storage } from '@lib/enums/Storage'
 import { Logger } from '@lib/state/Logger'
 import { mmkvStorage } from '@lib/storage/MMKV'
 import { getDocumentAsync } from 'expo-document-picker'
@@ -35,7 +36,7 @@ export namespace SamplersManager {
                 addSamplerConfig: (config) => {
                     const configs = get().configList
                     if (configs.some((item) => item.name === config.name)) {
-                        Logger.log(`Sampler Config "${config.name}" already exists!`, true)
+                        Logger.errorToast(`Sampler Config "${config.name}" already exists!`)
                         return
                     }
                     config.data = fixSamplerConfig(config.data)
@@ -84,7 +85,7 @@ export namespace SamplersManager {
                 },
             }),
             {
-                name: 'samplerstate-storage',
+                name: Storage.Samplers,
                 storage: createJSONStorage(() => mmkvStorage),
                 version: 1,
                 partialize: (state) => ({
@@ -143,7 +144,7 @@ export namespace SamplersManager {
                 (!result.assets[0].name.endsWith('json') &&
                     !result.assets[0].name.endsWith('settings'))
             ) {
-                Logger.log(`Invalid File Type!`, true)
+                Logger.errorToast(`Invalid File Type!`)
                 return
             }
             const name = result.assets[0].name
@@ -155,7 +156,7 @@ export namespace SamplersManager {
             })
             return { data: JSON.parse(data), name: name }
         } catch (e) {
-            Logger.log(`Failed to import: ${e}`, true)
+            Logger.errorToast(`Failed to import: ${e}`)
         }
     }
 }
@@ -171,8 +172,8 @@ export const fixSamplerConfig = (config: SamplerConfigData) => {
         const data = Samplers[key].values.default
         config[key] = data
         samekeys = false
-        Logger.debug(`Preset was missing field: ${key}`)
+        Logger.debug(`Sampler Config was missing field: ${key}`)
     })
-    if (!samekeys) Logger.log(`Preset had missing fields and was fixed!`)
+    if (!samekeys) Logger.warn(`Sampler Config had missing fields and was fixed!`)
     return config
 }

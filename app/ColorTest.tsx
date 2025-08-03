@@ -1,4 +1,3 @@
-import { ColorScheme } from '@lib/theme/ThemeColor'
 import { Theme } from '@lib/theme/ThemeManager'
 import React from 'react'
 import { Text, View } from 'react-native'
@@ -8,7 +7,7 @@ const ColorTest = () => {
 
     return (
         <View>
-            <View style={{ padding: spacing._24, backgroundColor: color.neutral._200 }}>
+            <View style={{ padding: spacing.xl2, backgroundColor: color.neutral._200 }}>
                 <Text style={{ color: color.text._100 }}>ColorTest</Text>
             </View>
             {Object.keys(color).map((item) => {
@@ -25,7 +24,7 @@ const ColorTest = () => {
                                             key={item2}
                                             style={{
                                                 flex: 1,
-                                                paddingVertical: 20,
+                                                paddingVertical: 24,
                                                 //@ts-ignore
                                                 backgroundColor: color?.[item]?.[item2],
                                             }}
