@@ -1,5 +1,7 @@
 # ChatterUI - 一个简单的大语言模型应用
 
+[中文](README_zh.md) | [English](README.md)
+
 ChatterUI 是一个原生移动端大语言模型前端应用。
 
 在设备上运行大语言模型或连接到各种商业或开源 API。ChatterUI 旨在提供一个移动端友好的界面，并对聊天结构进行精细控制。
