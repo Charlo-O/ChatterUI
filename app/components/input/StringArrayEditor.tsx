@@ -1,7 +1,6 @@
 import { AntDesign } from '@expo/vector-icons'
 import React, { useState } from 'react'
 import {
-    Text,
     TextInput,
     TouchableOpacity,
     View,
@@ -11,6 +10,8 @@ import {
 } from 'react-native'
 
 import ThemedButton from '@components/buttons/ThemedButton'
+import TText from '@components/text/TText'
+import { useI18n } from '@lib/i18n'
 import { Logger } from '@lib/state/Logger'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -42,6 +43,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
     showSuggestionsOnEmpty = false,
 }) => {
     const { color, borderRadius } = Theme.useTheme()
+    const { t } = useI18n()
     const styles = useStyles()
     const [newData, setNewData] = useState('')
     const filteredSuggestions = suggestions.filter(
@@ -66,7 +68,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
 
     return (
         <View style={[styles.mainContainer, containerStyle]}>
-            {label && <Text style={styles.title}>{label}</Text>}
+            {label && <TText style={styles.title}>{label}</TText>}
 
             <View style={styles.contentContainer}>
                 {value.length !== 0 && (
@@ -76,9 +78,9 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                                 key={index}
                                 style={styles.tag}
                                 onPress={() => handleSplice(index)}>
-                                <Text style={styles.tagText}>
+                                <TText style={styles.tagText}>
                                     {item.replaceAll('\n', replaceNewLine ?? '\n')}
-                                </Text>
+                                </TText>
                                 <AntDesign name="close" size={16} color={color.text._400} />
                             </TouchableOpacity>
                         ))}
@@ -93,9 +95,9 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                             alignItems: 'center',
                         }}>
                         {!filterOnly && (
-                            <Text style={{ color: color.text._400, marginBottom: 4 }}>
+                            <TText style={{ color: color.text._400, marginBottom: 4 }}>
                                 Suggestions
-                            </Text>
+                            </TText>
                         )}
                         <ScrollView
                             horizontal
@@ -129,7 +131,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                         onChangeText={setNewData}
                         keyboardType="default"
                         multiline
-                        placeholder={placeholder}
+                        placeholder={t(placeholder)}
                         placeholderTextColor={color.text._700}
                     />
 

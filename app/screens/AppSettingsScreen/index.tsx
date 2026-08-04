@@ -10,6 +10,7 @@ import ChatSettings from './ChatSettings'
 import ChatWindowSettings from './ChatWindowSettings'
 import DatabaseSettings from './DatabaseSettings'
 import GeneratingSettings from './GeneratingSettings'
+import LanguageSettings from './LanguageSettings'
 import NotificationSettings from './NotificationSettings'
 import ScreenSettings from './ScreenSettings'
 import SecuritySettings from './SecuritySettings'
@@ -28,6 +29,7 @@ const AppSettingsMenu = () => {
             contentContainerStyle={{ rowGap: spacing.sm }}>
             <HeaderTitle title="Settings" />
 
+            <LanguageSettings />
             <StyleSettings />
             <ChatSettings />
             <ChatWindowSettings />

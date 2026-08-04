@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -9,8 +9,10 @@ import ThemedButton from '@components/buttons/ThemedButton'
 import DropdownSheet from '@components/input/DropdownSheet'
 import MultiDropdownSheet from '@components/input/MultiDropdownSheet'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import TText from '@components/text/TText'
 import { CLAUDE_VERSION } from '@lib/constants/GlobalValues'
 import { APIManagerValue, APIManager } from '@lib/engine/API/APIManagerState'
+import { useI18n } from '@lib/i18n'
 import { Logger } from '@lib/state/Logger'
 import { Theme } from '@lib/theme/ThemeManager'
 import { getNestedValue } from '@lib/utils/Parsing'
@@ -18,6 +20,7 @@ import { getNestedValue } from '@lib/utils/Parsing'
 const AddConnection = () => {
     const styles = useStyles()
     const router = useRouter()
+    const { t } = useI18n()
     const { addValue, getTemplates } = APIManager.useConnectionsStore(
         useShallow((state) => ({
             getTemplates: state.getTemplates,
@@ -71,7 +74,7 @@ const AddConnection = () => {
 
     return (
         <SafeAreaView edges={['bottom']} style={styles.mainContainer}>
-            <Stack.Screen options={{ title: 'Add Connection' }} />
+            <Stack.Screen options={{ title: t('Add Connection') }} />
             <ScrollView
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
@@ -113,7 +116,7 @@ const AddConnection = () => {
                                 setValues({ ...values, endpoint: value })
                             }}
                         />
-                        <Text style={styles.hintText}>Note: Use full URL path</Text>
+                        <TText style={styles.hintText}>Note: Use full URL path</TText>
                     </View>
                 )}
 
@@ -155,7 +158,7 @@ const AddConnection = () => {
 
                 {template.features.useModel && (
                     <View>
-                        <Text style={styles.title}>Model</Text>
+                        <TText style={styles.title}>Model</TText>
                         <View
                             style={{
                                 flexDirection: 'row',
@@ -214,7 +217,7 @@ const AddConnection = () => {
                                 setValues({ ...values, firstMessage: value })
                             }}
                         />
-                        <Text style={styles.hintText}>Default first message sent to Claude</Text>
+                        <TText style={styles.hintText}>Default first message sent to Claude</TText>
                     </View>
                 )}
                 {template.features.usePrefill && (
@@ -226,7 +229,7 @@ const AddConnection = () => {
                                 setValues({ ...values, prefill: value })
                             }}
                         />
-                        <Text style={styles.hintText}>Prefill before model response</Text>
+                        <TText style={styles.hintText}>Prefill before model response</TText>
                     </View>
                 )}
             </ScrollView>

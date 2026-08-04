@@ -3,6 +3,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
 
 import FadeBackrop from '@components/views/FadeBackdrop'
+import { useI18n } from '@lib/i18n'
 import { AlertButtonProps, AlertProps, useAlertStore } from '@lib/state/components/Alert'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -16,6 +17,7 @@ export default Alert
 
 const AlertButton: React.FC<AlertButtonProps> = ({ label, onPress, type = 'default' }) => {
     const styles = useStyles()
+    const { t } = useI18n()
     const buttonStyleMap = {
         warning: styles.buttonWarning,
         default: styles.button,
@@ -27,13 +29,14 @@ const AlertButton: React.FC<AlertButtonProps> = ({ label, onPress, type = 'defau
                 useAlertStore.getState().hide()
                 onPress && onPress()
             }}>
-            <Text style={buttonStyleMap[type]}>{label}</Text>
+            <Text style={buttonStyleMap[type]}>{t(label)}</Text>
         </TouchableOpacity>
     )
 }
 
 export const AlertProvider = () => {
     const styles = useStyles()
+    const { t } = useI18n()
     const { visible, props } = useAlertStore(
         useShallow((state) => ({ visible: state.visible, props: state.props }))
     )
@@ -58,8 +61,8 @@ export const AlertProvider = () => {
             <FadeBackrop handleOverlayClick={handleDismiss} />
             <Animated.View style={styles.textBoxContainer} entering={FadeInDown.duration(150)}>
                 <View style={styles.textBox}>
-                    <Text style={styles.title}>{props.title}</Text>
-                    <Text style={styles.description}>{props.description}</Text>
+                    <Text style={styles.title}>{t(props.title)}</Text>
+                    <Text style={styles.description}>{t(props.description)}</Text>
                     <View style={styles.buttonContainer}>
                         {props.buttons.map((item, index) => (
                             <AlertButton {...item} key={index} />

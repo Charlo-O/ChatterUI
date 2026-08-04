@@ -1,9 +1,10 @@
 import { getStringAsync } from 'expo-clipboard'
 import React, { useState } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import ThemedButton from '@components/buttons/ThemedButton'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 import BottomSheet from './BottomSheet'
@@ -50,22 +51,22 @@ const InputSheet: React.FC<InputSheetProps> = ({
         <BottomSheet visible={visible} setVisible={setVisible} onClose={handleClose}>
             <View style={{ rowGap: spacing.xl }}>
                 {title && (
-                    <Text
+                    <TText
                         style={{
                             color: color.text._100,
                             fontSize: fontSize.l,
                             paddingLeft: spacing.s,
                         }}>
                         {title}
-                    </Text>
+                    </TText>
                 )}
                 {description && (
-                    <Text
+                    <TText
                         style={{
                             color: color.text._400,
                         }}>
                         {description}
-                    </Text>
+                    </TText>
                 )}
 
                 <View style={{ flexDirection: 'row', columnGap: spacing.m }}>
@@ -80,7 +81,7 @@ const InputSheet: React.FC<InputSheetProps> = ({
                         numberOfLines={10}
                     />
                 </View>
-                {errorMessage && <Text style={{ color: color.error._300 }}>{errorMessage}</Text>}
+                {errorMessage && <TText style={{ color: color.error._300 }}>{errorMessage}</TText>}
 
                 <View
                     style={{

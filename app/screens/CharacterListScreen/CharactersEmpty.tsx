@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const CharactersEmpty = () => {
@@ -15,7 +16,7 @@ const CharactersEmpty = () => {
                 marginTop: spacing.xl3,
             }}>
             <MaterialIcons name="person-search" color={color.text._700} size={60} />
-            <Text
+            <TText
                 style={{
                     color: color.text._700,
                     marginTop: spacing.xl,
@@ -23,7 +24,7 @@ const CharactersEmpty = () => {
                     fontSize: fontSize.l,
                 }}>
                 No Characters Found. Try Importing Some!
-            </Text>
+            </TText>
         </View>
     )
 }

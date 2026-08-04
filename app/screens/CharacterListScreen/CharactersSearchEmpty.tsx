@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const CharSearchEmpty = () => {
@@ -15,7 +16,7 @@ const CharSearchEmpty = () => {
                 marginTop: spacing.xl3,
             }}>
             <Ionicons name="search" color={color.text._400} size={60} />
-            <Text
+            <TText
                 style={{
                     color: color.text._400,
                     marginTop: spacing.xl,
@@ -23,7 +24,7 @@ const CharSearchEmpty = () => {
                     fontSize: fontSize.l,
                 }}>
                 No Characters Match Search Result
-            </Text>
+            </TText>
         </View>
     )
 }

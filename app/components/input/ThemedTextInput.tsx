@@ -1,5 +1,7 @@
-import { Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native'
+import { TextInput, TextInputProps, View, ViewStyle } from 'react-native'
 
+import TText from '@components/text/TText'
+import { useI18n } from '@lib/i18n'
 import { useUnfocusTextInput } from '@lib/hooks/UnfocusTextInput'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -16,12 +18,14 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
     description,
     numberOfLines,
     multiline = false,
+    placeholder,
     style = undefined,
     autoUnfocus = true,
     containerStyle = {},
     ...rest
 }) => {
     const { color } = Theme.useTheme()
+    const { t } = useI18n()
     const ref = useUnfocusTextInput()
 
     return (
@@ -31,13 +35,13 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
                 ...containerStyle,
             }}>
             {label && (
-                <Text
+                <TText
                     style={{
                         color: color.text._100,
                         marginBottom: 8,
                     }}>
                     {label}
-                </Text>
+                </TText>
             )}
             <TextInput
                 ref={autoUnfocus ? ref : null}
@@ -55,7 +59,7 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
                     },
                     style,
                 ]}
-                placeholder="----"
+                placeholder={placeholder ? t(placeholder) : '----'}
                 placeholderTextColor={color.text._500}
                 {...rest}
             />

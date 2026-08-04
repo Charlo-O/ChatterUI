@@ -8,6 +8,7 @@ import ThemedButton from '@components/buttons/ThemedButton'
 import HeaderTitle from '@components/views/HeaderTitle'
 import { db } from '@db'
 import useLocalAuth from '@lib/hooks/LocalAuth'
+import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
 import { loadChatOnInit, startupApp, useTextIntentFocus } from '@lib/utils/Startup'
 import CharacterList from '@screens/CharacterListScreen'
@@ -16,6 +17,7 @@ import migrations from '../db/migrations/migrations'
 
 const Home = () => {
     const { color } = Theme.useTheme()
+    const { t } = useI18n()
     const styles = useStyles()
     const { success, error } = useMigrations(db, migrations)
     const { authorized, retry } = useLocalAuth()
@@ -48,16 +50,17 @@ const Home = () => {
         return (
             <View style={styles.centeredContainer}>
                 <HeaderTitle />
-                <Text style={styles.title}>Database Migration Failed!</Text>
+                <Text style={styles.title}>{t('Database Migration Failed!')}</Text>
                 <Text style={styles.errorLog}>{error.message}</Text>
                 <Text style={styles.subtitle}>
-                    If you are seeing this, something has gone terribly wrong. Report this error
-                    below, include a screenshot of the log above.
+                    {t(
+                        'If you are seeing this, something has gone terribly wrong. Report this error below, include a screenshot of the log above.'
+                    )}
                 </Text>
                 <Text style={styles.subtitle} />
                 <ThemedButton
                     variant="secondary"
-                    label="Github Repository"
+                    label={t('Github Repository')}
                     iconName="github"
                     iconSize={20}
                     onPress={() => {
@@ -77,9 +80,9 @@ const Home = () => {
                     style={{ marginBottom: 12 }}
                     color={color.text._500}
                 />
-                <Text style={styles.title}>Authentication Required</Text>
+                <Text style={styles.title}>{t('Authentication Required')}</Text>
                 <TouchableOpacity onPress={retry} style={styles.button}>
-                    <Text style={styles.buttonText}>Try Again</Text>
+                    <Text style={styles.buttonText}>{t('Try Again')}</Text>
                 </TouchableOpacity>
             </View>
         )

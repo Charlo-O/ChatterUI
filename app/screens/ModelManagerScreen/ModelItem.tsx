@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
 import DropdownSheet from '@components/input/DropdownSheet'
+import TText from '@components/text/TText'
 import Alert from '@components/views/Alert'
 import InputSheet from '@components/views/InputSheet'
 import { GGMLNameMap } from '@lib/engine/Local'
@@ -122,13 +123,17 @@ const ModelItem: React.FC<ModelItemProps> = ({
             )}
             {isInvalid && (
                 <View style={styles.tagContainer}>
-                    <Text style={styles.tag}>Model is Invalid</Text>
+                    <TText style={styles.tag}>Model is Invalid</TText>
                 </View>
             )}
             {!isInvalid && !isMMPROJ && (
-                <Text style={styles.subtitle}>Context Length: {item.context_length}</Text>
+                <TText style={styles.subtitle}>
+                    <TText>Context Length:</TText> {item.context_length}
+                </TText>
             )}
-            <Text style={styles.subtitle}>File: {item.file.replace('.gguf', '')}</Text>
+            <TText style={styles.subtitle}>
+                <TText>File:</TText> {item.file.replace('.gguf', '')}
+            </TText>
             <View style={styles.buttonContainer}>
                 {!isMMPROJ && mmprojList.length > 0 && (
                     <TouchableOpacity

@@ -1,8 +1,9 @@
 import { AntDesign } from '@expo/vector-icons'
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
+import TText from '@components/text/TText'
 import { CharacterSorter, SearchType } from '@lib/state/CharacterSorter'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -45,9 +46,9 @@ const SortButton: React.FC<SortButtonProps> = ({ type, label }) => {
                     color={color.text._100}
                 />
             )}
-            <Text style={isCurrent ? styles.sortButtonTextActive : styles.sortButtonText}>
+            <TText style={isCurrent ? styles.sortButtonTextActive : styles.sortButtonText}>
                 {label}
-            </Text>
+            </TText>
         </TouchableOpacity>
     )
 }

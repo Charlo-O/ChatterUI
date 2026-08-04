@@ -2,7 +2,7 @@ import { count, eq, notInArray } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
-import { BackHandler, Text, View } from 'react-native'
+import { BackHandler, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
@@ -10,8 +10,10 @@ import { useShallow } from 'zustand/react/shallow'
 import ThemedButton from '@components/buttons/ThemedButton'
 import StringArrayEditor from '@components/input/StringArrayEditor'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import TText from '@components/text/TText'
 import { db } from '@db'
 import { AppSettings } from '@lib/constants/GlobalValues'
+import { useI18n } from '@lib/i18n'
 import { CharacterSorter } from '@lib/state/CharacterSorter'
 import { Logger } from '@lib/state/Logger'
 import { TagHider } from '@lib/state/TagHider'
@@ -39,6 +41,7 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
         )
 
     const { color } = Theme.useTheme()
+    const { t } = useI18n()
     const [showTags, setShowTags] = useMMKVBoolean(AppSettings.ShowTags)
     const hiddenTags = TagHider.useHiddenTags()
 
@@ -85,13 +88,13 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                         flexDirection: 'row',
                         alignItems: 'center',
                     }}>
-                    <Text
+                    <TText
                         style={{
                             color: color.text._400,
                             fontSize: 16,
                         }}>
                         Sort By
-                    </Text>
+                    </TText>
                     <SortButton type="modified" label="Recent" />
                     <SortButton type="name" label="Name" />
                 </View>
@@ -160,13 +163,13 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                             placeholder="Name..."
                         />
                         {(textFilter || tagFilter.length > 0) && (
-                            <Text
+                            <TText
                                 style={{
                                     marginTop: 8,
                                     color: color.text._400,
                                 }}>
-                                Results: {resultLength}
-                            </Text>
+                                {t('Results: {{count}}', { count: resultLength })}
+                            </TText>
                         )}
                     </Animated.View>
                 )}

@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import { useEffect, useRef } from 'react'
-import { Pressable, Text, View, ViewStyle } from 'react-native'
+import { Pressable, View, ViewStyle } from 'react-native'
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -8,6 +8,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 type HorizontalSelectorProps<T> = {
@@ -65,13 +66,13 @@ const HorizontalSelector = <T,>({
     return (
         <View style={[{ flex: 1 }, style]}>
             {label && (
-                <Text
+                <TText
                     style={{
                         flex: style?.flex ?? 1,
                         color: color.text._100,
                     }}>
                     {label}
-                </Text>
+                </TText>
             )}
 
             <View
@@ -118,20 +119,20 @@ const HorizontalSelector = <T,>({
                                     color={color.text[isSelected ? '_200' : '_500']}
                                 />
                             )}
-                            <Text
+                            <TText
                                 style={{
                                     color: color.text[isSelected ? '_200' : '_500'],
                                     fontSize: fontSize.s,
                                 }}>
                                 {item.label}
-                            </Text>
+                            </TText>
                         </Pressable>
                     )
                 })}
             </View>
 
             {description && (
-                <Text
+                <TText
                     style={{
                         color: color.text._400,
                         marginTop: 4,
@@ -139,7 +140,7 @@ const HorizontalSelector = <T,>({
                         marginBottom: spacing.m,
                     }}>
                     {description}
-                </Text>
+                </TText>
             )}
         </View>
     )

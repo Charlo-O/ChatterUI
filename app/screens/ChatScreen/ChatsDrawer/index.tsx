@@ -1,15 +1,17 @@
 import { FlashList } from '@shopify/flash-list'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
 
 import ThemedButton from '@components/buttons/ThemedButton'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import TText from '@components/text/TText'
 import Drawer from '@components/views/Drawer'
 import { YAxisOnlyTransition } from '@lib/animations/transitions'
 import { useDebounce } from '@lib/hooks/Debounce'
+import { useI18n } from '@lib/i18n'
 import { Characters } from '@lib/state/Characters'
 import { Chats } from '@lib/state/Chat'
 import { Logger } from '@lib/state/Logger'
@@ -20,6 +22,7 @@ import ChatDrawerSearchItem from './ChatDrawerSearchItem'
 
 const ChatsDrawer = () => {
     const styles = useStyles()
+    const { t } = useI18n()
     const { charId } = Characters.useCharacterStore(useShallow((state) => ({ charId: state.id })))
     const { data } = useLiveQuery(Chats.db.query.chatListQuery(charId ?? 0), [charId])
     const setShow = Drawer.useDrawerStore((state) => state.setShow)
@@ -71,7 +74,7 @@ const ChatsDrawer = () => {
         <Drawer.Body drawerID={Drawer.ID.CHATLIST} drawerStyle={styles.drawer} direction="right">
             <View
                 style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                <Text style={styles.drawerTitle}>{showSearchBar ? 'Search' : 'Chats'}</Text>
+                <TText style={styles.drawerTitle}>{showSearchBar ? 'Search' : 'Chats'}</TText>
                 <ThemedButton
                     variant="tertiary"
                     iconName={showSearchBar ? 'backward' : 'search'}
@@ -118,7 +121,9 @@ const ChatsDrawer = () => {
             {showSearchResults && (
                 <Animated.View entering={FadeIn.duration(200)} style={styles.listContainer}>
                     {searchResults.length > 0 && (
-                        <Text style={styles.resultCount}>Results: {searchResults.length}</Text>
+                        <TText style={styles.resultCount}>
+                            {t('Results: {{count}}', { count: searchResults.length })}
+                        </TText>
                     )}
                     <FlashList
                         data={searchResults}
@@ -134,7 +139,7 @@ const ChatsDrawer = () => {
                         removeClippedSubviews={false}
                         ListEmptyComponent={() => (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>No Results</Text>
+                                <TText style={styles.emptyText}>No Results</TText>
                             </View>
                         )}
                     />

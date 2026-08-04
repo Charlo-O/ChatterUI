@@ -1,6 +1,7 @@
 import React from 'react'
-import { Switch, Text, View } from 'react-native'
+import { Switch, View } from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 interface ThemedSwitchProps {
@@ -32,25 +33,25 @@ const ThemedSwitch: React.FC<ThemedSwitchProps> = ({
                     value={value}
                 />
                 {label && (
-                    <Text
+                    <TText
                         style={{
                             flex: 1,
                             marginLeft: spacing.xl,
                             color: value ? color.text._100 : color.text._300,
                         }}>
                         {label}
-                    </Text>
+                    </TText>
                 )}
             </View>
             {description && (
-                <Text
+                <TText
                     style={{
                         color: color.text._400,
                         paddingBottom: spacing.xs,
                         marginBottom: spacing.m,
                     }}>
                     {description}
-                </Text>
+                </TText>
             )}
         </View>
     )

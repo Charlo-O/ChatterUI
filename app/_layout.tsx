@@ -5,6 +5,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller'
 
 import { AlertProvider } from '@components/views/Alert'
 import { PortalHost } from '@components/views/Portal'
+import { I18nProvider } from '@lib/i18n'
 import { useAppStateNotificationObserver } from '@lib/notifications/Notifications'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -18,25 +19,27 @@ const Layout = () => {
     const { color } = Theme.useTheme()
     useAppStateNotificationObserver()
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-                <AlertProvider />
-                <Stack
-                    screenOptions={{
-                        headerBackButtonDisplayMode: 'minimal',
-                        headerStyle: { backgroundColor: color.neutral._100 },
-                        headerTitleStyle: { color: color.text._100 },
-                        headerTintColor: color.text._100,
-                        contentStyle: { backgroundColor: color.neutral._100 },
-                        headerShadowVisible: false,
-                        headerTitleAlign: 'center',
-                        statusBarStyle: 'auto',
-                    }}>
-                    <Stack.Screen name="index" options={{ animation: 'fade' }} />
-                </Stack>
-                <PortalHost />
-            </KeyboardProvider>
-        </GestureHandlerRootView>
+        <I18nProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                    <AlertProvider />
+                    <Stack
+                        screenOptions={{
+                            headerBackButtonDisplayMode: 'minimal',
+                            headerStyle: { backgroundColor: color.neutral._100 },
+                            headerTitleStyle: { color: color.text._100 },
+                            headerTintColor: color.text._100,
+                            contentStyle: { backgroundColor: color.neutral._100 },
+                            headerShadowVisible: false,
+                            headerTitleAlign: 'center',
+                            statusBarStyle: 'auto',
+                        }}>
+                        <Stack.Screen name="index" options={{ animation: 'fade' }} />
+                    </Stack>
+                    <PortalHost />
+                </KeyboardProvider>
+            </GestureHandlerRootView>
+        </I18nProvider>
     )
 }
 

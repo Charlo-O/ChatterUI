@@ -10,7 +10,6 @@ import {
     LayoutRectangle,
     Pressable,
     StyleSheet,
-    Text,
     TextStyle,
     TouchableOpacity,
     View,
@@ -31,6 +30,7 @@ import {
     ShrinkHeightOut,
     ShrinkHeightUpOut,
 } from '@lib/animations/transitions'
+import TText from '@components/text/TText'
 import { useContextMenuStore } from '@lib/state/components/ContextMenu'
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -351,14 +351,14 @@ const MenuList = ({
                                     />
                                 )}
 
-                                <Text
+                                <TText
                                     style={
                                         item.variant === 'warning'
                                             ? styles.menuTextError
                                             : styles.menuText
                                     }>
                                     {item.label}
-                                </Text>
+                                </TText>
                             </Pressable>
 
                             {hasSubmenu && openKey === key && (

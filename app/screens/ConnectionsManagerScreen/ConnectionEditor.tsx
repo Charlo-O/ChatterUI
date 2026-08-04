@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
 import HeartbeatButton from '@components/buttons/HeartbeatButton'
@@ -8,6 +8,7 @@ import DropdownSheet from '@components/input/DropdownSheet'
 import MultiDropdownSheet from '@components/input/MultiDropdownSheet'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import BottomSheet from '@components/views/BottomSheet'
+import TText from '@components/text/TText'
 import { CLAUDE_VERSION } from '@lib/constants/GlobalValues'
 import { APIConfiguration } from '@lib/engine/API/APIBuilder.types'
 import { APIManager, APIManagerValue } from '@lib/engine/API/APIManagerState'
@@ -88,7 +89,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                 close()
             }}>
             <View style={styles.mainContainer}>
-                <Text
+                <TText
                     style={{
                         color: color.text._100,
                         fontSize: fontSize.xl2,
@@ -96,7 +97,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                         paddingBottom: 16,
                     }}>
                     Edit Connection
-                </Text>
+                </TText>
 
                 <ScrollView
                     style={{ flex: 1 }}
@@ -119,7 +120,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                                     setValues({ ...values, endpoint: value })
                                 }}
                             />
-                            <Text style={styles.hintText}>Note: Use full URL path</Text>
+                            <TText style={styles.hintText}>Note: Use full URL path</TText>
                         </View>
                     )}
 
@@ -161,7 +162,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
 
                     {template.features.useModel && (
                         <View style={{ rowGap: 4 }}>
-                            <Text style={styles.title}>Model</Text>
+                            <TText style={styles.title}>Model</TText>
                             <View
                                 style={{
                                     flexDirection: 'row',
@@ -219,9 +220,9 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                                     setValues({ ...values, firstMessage: value })
                                 }}
                             />
-                            <Text style={styles.hintText}>
+                            <TText style={styles.hintText}>
                                 Default first message sent to Claude
-                            </Text>
+                            </TText>
                         </View>
                     )}
                     {template.features.usePrefill && (
@@ -233,7 +234,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                                     setValues({ ...values, prefill: value })
                                 }}
                             />
-                            <Text style={styles.hintText}>Prefill before model response</Text>
+                            <TText style={styles.hintText}>Prefill before model response</TText>
                         </View>
                     )}
                 </ScrollView>

@@ -1,11 +1,14 @@
 import { AntDesign } from '@expo/vector-icons'
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import * as Progress from 'react-native-progress'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Llama } from '@lib/engine/Local/LlamaLocal'
+import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
+
+import TText from '@components/text/TText'
 
 type ModelInfoHeaderProps = {
     modelImporting: boolean
@@ -22,6 +25,7 @@ const ModelInfoHeader: React.FC<ModelInfoHeaderProps> = ({
 }) => {
     const styles = useStyles()
     const { color } = Theme.useTheme()
+    const { t } = useI18n()
 
     const { modelName, loadProgress } = Llama.useLlamaModelStore(
         useShallow((state) => ({
@@ -33,18 +37,19 @@ const ModelInfoHeader: React.FC<ModelInfoHeaderProps> = ({
     return (
         <View style={styles.modelContainer}>
             {!modelImporting && !modelLoading && modelListLength !== 0 && (
-                <Text style={styles.subtitle}>
-                    Model Loaded:{' '}
-                    <Text style={styles.modelTitle} ellipsizeMode="tail" numberOfLines={1}>
+                <TText style={styles.subtitle}>
+                    {t('Model Loaded:')}{' '}
+                    <TText style={styles.modelTitle} ellipsizeMode="tail" numberOfLines={1}>
                         {modelName ?? 'None'}
-                    </Text>
-                </Text>
+                    </TText>
+                </TText>
             )}
             {!modelImporting && !modelLoading && modelListLength === 0 && modelUpdatedAt && (
                 <View>
-                    <Text style={styles.hint}>
-                        Hint: Press <AntDesign name="file-add" size={16} /> and import a GGUF model!
-                    </Text>
+                    <TText style={styles.hint}>
+                        {t('Hint: Press')} <AntDesign name="file-add" size={16} />{' '}
+                        {t('and import a GGUF model!')}
+                    </TText>
                 </View>
             )}
 
@@ -61,14 +66,14 @@ const ModelInfoHeader: React.FC<ModelInfoHeaderProps> = ({
                         width={null}
                     />
 
-                    <Text
+                    <TText
                         style={{
                             flex: 2,
                             color: color.text._100,
                             textAlign: 'center',
                         }}>
                         Importing...
-                    </Text>
+                    </TText>
                 </View>
             )}
 
@@ -83,14 +88,14 @@ const ModelInfoHeader: React.FC<ModelInfoHeaderProps> = ({
                         borderRadius={12}
                         width={null}
                     />
-                    <Text
+                    <TText
                         style={{
                             flex: 1,
                             color: color.text._100,
                             textAlign: 'center',
                         }}>
                         {loadProgress}%
-                    </Text>
+                    </TText>
                 </View>
             )}
         </View>

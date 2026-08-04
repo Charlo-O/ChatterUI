@@ -1,8 +1,10 @@
 import { Entypo } from '@expo/vector-icons'
 import { useState } from 'react'
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native'
+import { FlatList, Pressable, StyleSheet, TextInput, View, ViewStyle } from 'react-native'
 
+import TText from '@components/text/TText'
 import BottomSheet from '@components/views/BottomSheet'
+import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
 
 type DropdownItemProps = {
@@ -19,7 +21,7 @@ const DropdownItem: React.FC<DropdownItemProps> = ({ label, active, onValueChang
             onPress={() => {
                 onValueChange(!active)
             }}>
-            <Text style={styles.listItemText}>{label}</Text>
+            <TText style={styles.listItemText}>{label}</TText>
         </Pressable>
     )
 }
@@ -53,6 +55,7 @@ const MultiDropdownSheet = <T,>({
 }: DropdownSheetProps<T>) => {
     const styles = useDropdownStyles()
     const { color, spacing } = Theme.useTheme()
+    const { t } = useI18n()
     const [showList, setShowList] = useState(false)
     const [searchFilter, setSearchFilter] = useState('')
 
@@ -75,12 +78,14 @@ const MultiDropdownSheet = <T,>({
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                     }}>
-                    <Text style={styles.modalTitle}>{modalTitle}</Text>
-                    <Text style={styles.counterText}>
+                    <TText style={styles.modalTitle}>{modalTitle}</TText>
+                    <TText style={styles.counterText}>
                         {selected.length > 0
-                            ? `Selected ${selected.length} item${selected.length > 1 ? 's' : ''}`
-                            : 'No items selected'}
-                    </Text>
+                            ? t(selected.length > 1 ? 'Selected {{count}} items' : 'Selected {{count}} item', {
+                                  count: selected.length,
+                              })
+                            : t('No items selected')}
+                    </TText>
                 </View>
                 {items.length > 0 ? (
                     <FlatList
@@ -117,11 +122,11 @@ const MultiDropdownSheet = <T,>({
                         )}
                     />
                 ) : (
-                    <Text style={styles.emptyText}>No Items</Text>
+                    <TText style={styles.emptyText}>No Items</TText>
                 )}
                 {search && (
                     <TextInput
-                        placeholder="Filter..."
+                        placeholder={t('Filter...')}
                         placeholderTextColor={color.text._300}
                         style={styles.searchBar}
                         value={searchFilter}
@@ -131,10 +136,10 @@ const MultiDropdownSheet = <T,>({
             </BottomSheet>
             <Pressable style={[style, styles.button]} onPress={() => setShowList(true)}>
                 {selected && selected.length > 0 && (
-                    <Text style={styles.buttonText}>{selected.length} Items Selected</Text>
+                    <TText style={styles.buttonText}>{t('Selected {{count}} items', { count: selected.length })}</TText>
                 )}
                 {(!selected || selected.length === 0) && (
-                    <Text style={styles.placeholderText}>{placeholder}</Text>
+                    <TText style={styles.placeholderText}>{placeholder}</TText>
                 )}
                 <Entypo name="chevron-down" color={color.primary._800} size={18} />
             </Pressable>

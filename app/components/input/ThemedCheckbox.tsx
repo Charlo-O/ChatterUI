@@ -1,6 +1,6 @@
 import { AntDesign } from '@expo/vector-icons'
 import { useEffect } from 'react'
-import { Pressable, Text, ViewStyle } from 'react-native'
+import { Pressable, ViewStyle } from 'react-native'
 import Animated, {
     BounceIn,
     interpolateColor,
@@ -11,6 +11,7 @@ import Animated, {
     ZoomOut,
 } from 'react-native-reanimated'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 type ThemedCheckboxProps = {
@@ -77,14 +78,14 @@ const ThemedCheckbox: React.FC<ThemedCheckboxProps> = ({
                 )}
             </Animated.View>
             {label && (
-                <Text
+                <TText
                     style={{
                         paddingLeft: 12,
                         flex: 1,
                         color: value ? theme.color.text._100 : theme.color.text._400,
                     }}>
                     {label}
-                </Text>
+                </TText>
             )}
         </Pressable>
     )

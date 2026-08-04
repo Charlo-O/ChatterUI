@@ -1,6 +1,7 @@
 import { AntDesign } from '@expo/vector-icons'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const ModelEmpty = () => {
@@ -13,7 +14,7 @@ const ModelEmpty = () => {
                 flex: 1,
             }}>
             <AntDesign name="file-unknown" size={60} color={color.text._700} />
-            <Text
+            <TText
                 style={{
                     color: color.text._700,
                     marginTop: spacing.xl,
@@ -21,7 +22,7 @@ const ModelEmpty = () => {
                     fontSize: fontSize.l,
                 }}>
                 No Models Found. Try Importing Some!
-            </Text>
+            </TText>
         </View>
     )
 }

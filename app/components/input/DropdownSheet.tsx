@@ -1,8 +1,10 @@
 import { Entypo } from '@expo/vector-icons'
 import { useState } from 'react'
-import { FlatList, Pressable, Text, TextInput, View, ViewStyle } from 'react-native'
+import { FlatList, Pressable, TextInput, View, ViewStyle } from 'react-native'
 
+import TText from '@components/text/TText'
 import BottomSheet from '@components/views/BottomSheet'
+import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
 
 import { useDropdownStyles } from './MultiDropdownSheet'
@@ -38,6 +40,7 @@ const DropdownSheet = <T,>({
     const [showList, setShowList] = useState(false)
     const [searchFilter, setSearchFilter] = useState('')
     const theme = Theme.useTheme()
+    const { t } = useI18n()
     const items = data.filter((item) =>
         labelExtractor(item).toLowerCase().includes(searchFilter.toLowerCase())
     )
@@ -49,7 +52,7 @@ const DropdownSheet = <T,>({
                 onClose={() => {
                     setSearchFilter('')
                 }}>
-                <Text style={styles.modalTitle}>{modalTitle}</Text>
+                <TText style={styles.modalTitle}>{modalTitle}</TText>
                 {items.length > 0 ? (
                     <FlatList
                         contentContainerStyle={{ rowGap: 2 }}
@@ -67,16 +70,16 @@ const DropdownSheet = <T,>({
                                     onChangeValue(item)
                                     setShowList(!closeOnSelect)
                                 }}>
-                                <Text style={styles.listItemText}>{labelExtractor(item)}</Text>
+                                <TText style={styles.listItemText}>{labelExtractor(item)}</TText>
                             </Pressable>
                         )}
                     />
                 ) : (
-                    <Text style={styles.emptyText}>No Items</Text>
+                    <TText style={styles.emptyText}>No Items</TText>
                 )}
                 {search && (
                     <TextInput
-                        placeholder="Filter..."
+                        placeholder={t('Filter...')}
                         placeholderTextColor={theme.color.text._300}
                         style={styles.searchBar}
                         value={searchFilter}
@@ -85,8 +88,8 @@ const DropdownSheet = <T,>({
                 )}
             </BottomSheet>
             <Pressable style={[style, styles.button]} onPress={() => setShowList(true)}>
-                {selected && <Text style={styles.buttonText}>{labelExtractor(selected)}</Text>}
-                {!selected && <Text style={styles.placeholderText}>{placeholder}</Text>}
+                {selected && <TText style={styles.buttonText}>{labelExtractor(selected)}</TText>}
+                {!selected && <TText style={styles.placeholderText}>{placeholder}</TText>}
                 <Entypo name="chevron-down" color={theme.color.primary._800} size={18} />
             </Pressable>
         </View>
