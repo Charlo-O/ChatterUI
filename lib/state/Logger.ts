@@ -1,4 +1,3 @@
-import Toast from 'react-native-simple-toast'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -6,6 +5,7 @@ import { Storage } from '@lib/enums/Storage'
 
 import { AppSettings } from '../constants/GlobalValues'
 import { createMMKVStorage, mmkv } from '../storage/MMKV'
+import Toast from './Toast'
 
 const toastTime = Toast.SHORT
 const maxloglength = 2000

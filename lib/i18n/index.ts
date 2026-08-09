@@ -11,7 +11,7 @@ import React, {
 } from 'react'
 
 import { Global } from '@lib/constants/GlobalValues'
-import { mmkv } from '@lib/storage/MMKV'
+import { getMMKVString, setMMKVString } from '@lib/storage/MMKV'
 
 import enUS from './locales/en-US'
 import zhCN from './locales/zh-CN'
@@ -34,7 +34,7 @@ const isLanguagePreference = (value: string | undefined): value is LanguagePrefe
     value === 'system' || value === 'en-US' || value === 'zh-CN'
 
 const getStoredPreference = (): LanguagePreference => {
-    const stored = mmkv.getString(LANGUAGE_PREFERENCE_KEY)
+    const stored = getMMKVString(LANGUAGE_PREFERENCE_KEY) ?? undefined
     return isLanguagePreference(stored) ? stored : 'system'
 }
 
@@ -80,7 +80,7 @@ export const I18nProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }, [])
 
     const setLanguagePreference = useCallback((nextPreference: LanguagePreference) => {
-        mmkv.set(LANGUAGE_PREFERENCE_KEY, nextPreference)
+        setMMKVString(LANGUAGE_PREFERENCE_KEY, nextPreference)
         setPreference(nextPreference)
         void i18n.changeLanguage(resolveLocale(nextPreference))
     }, [])

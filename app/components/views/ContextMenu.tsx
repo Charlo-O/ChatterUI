@@ -372,28 +372,38 @@ const MenuList = ({
 }
 
 const useStyles = () => {
-    const { color } = Theme.useTheme()
+    const { color, borderRadius } = Theme.useTheme()
     return StyleSheet.create({
         menuContainer: {
             position: 'absolute',
-            borderRadius: 8,
+            borderRadius: borderRadius.l,
         },
         menu: {
             backgroundColor: color.neutral._200,
             minWidth: CONTEXT_MENU_MIN_WIDTH,
             borderColor: color.neutral._400,
             borderWidth: 1,
-            padding: 4,
-            borderRadius: 8,
+            padding: 6,
+            borderRadius: borderRadius.l,
             overflow: 'hidden',
+            boxShadow: [
+                {
+                    offsetX: 0,
+                    offsetY: 8,
+                    blurRadius: 24,
+                    color: color.shadow + '20',
+                },
+            ],
         },
         menuItem: {
-            padding: 12,
+            paddingVertical: 11,
+            paddingHorizontal: 12,
             paddingRight: 24,
             minWidth: CONTEXT_MENU_MIN_WIDTH,
             flexDirection: 'row',
             alignItems: 'center',
             columnGap: 12,
+            borderRadius: borderRadius.m,
         },
         menuText: {
             color: color.text._300,

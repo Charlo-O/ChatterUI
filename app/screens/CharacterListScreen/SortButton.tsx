@@ -43,7 +43,7 @@ const SortButton: React.FC<SortButtonProps> = ({ type, label }) => {
                             ? 'caret-up'
                             : 'caret-down'
                     }
-                    color={color.text._100}
+                    color={color.text._900}
                 />
             )}
             <TText style={isCurrent ? styles.sortButtonTextActive : styles.sortButtonText}>
@@ -62,19 +62,19 @@ const useStyles = () => {
         sortButton: {
             alignItems: 'center',
             flexDirection: 'row',
-            paddingHorizontal: spacing.xl,
-            paddingVertical: spacing.m,
-            backgroundColor: color.neutral._200,
-            borderRadius: borderRadius.xl,
+            paddingHorizontal: spacing.l,
+            paddingVertical: spacing.sm,
+            backgroundColor: color.neutral._300,
+            borderRadius: borderRadius.xl2,
         },
 
         sortButtonActive: {
             alignItems: 'center',
             flexDirection: 'row',
-            paddingHorizontal: spacing.xl,
-            paddingVertical: spacing.m,
-            backgroundColor: color.primary._300,
-            borderRadius: borderRadius.xl,
+            paddingHorizontal: spacing.l,
+            paddingVertical: spacing.sm,
+            backgroundColor: color.primary._500,
+            borderRadius: borderRadius.xl2,
         },
 
         sortButtonText: {
@@ -83,7 +83,8 @@ const useStyles = () => {
 
         sortButtonTextActive: {
             marginLeft: 4,
-            color: color.text._100,
+            color: color.text._900,
+            fontWeight: '600',
         },
     })
 }

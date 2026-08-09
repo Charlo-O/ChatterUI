@@ -26,17 +26,17 @@ import FadeBackrop from './FadeBackdrop'
 type Direction = 'left' | 'right' | 'up' | 'down'
 
 const animationIn: Record<Direction, ComplexAnimationBuilder> = {
-    left: SlideInLeft.duration(200).easing(Easing.out(Easing.quad)),
-    right: SlideInRight.duration(200).easing(Easing.out(Easing.quad)),
-    up: SlideInUp.duration(200).easing(Easing.out(Easing.quad)),
-    down: SlideInDown.duration(200).easing(Easing.out(Easing.quad)),
+    left: SlideInLeft.duration(220).easing(Easing.out(Easing.exp)),
+    right: SlideInRight.duration(220).easing(Easing.out(Easing.exp)),
+    up: SlideInUp.duration(220).easing(Easing.out(Easing.exp)),
+    down: SlideInDown.duration(220).easing(Easing.out(Easing.exp)),
 }
 
 const animationOut: Record<Direction, ComplexAnimationBuilder> = {
-    left: SlideOutLeft.duration(300).easing(Easing.out(Easing.quad)),
-    right: SlideOutRight.duration(300).easing(Easing.out(Easing.quad)),
-    up: SlideOutUp.duration(300).easing(Easing.out(Easing.quad)),
-    down: SlideOutDown.duration(300).easing(Easing.out(Easing.quad)),
+    left: SlideOutLeft.duration(220).easing(Easing.out(Easing.exp)),
+    right: SlideOutRight.duration(220).easing(Easing.out(Easing.exp)),
+    up: SlideOutUp.duration(220).easing(Easing.out(Easing.exp)),
+    down: SlideOutDown.duration(220).easing(Easing.out(Easing.exp)),
 }
 
 type DrawerBodyProps = {
@@ -215,11 +215,12 @@ const useStyles = () => {
 
         drawer: {
             backgroundColor: color.neutral._100,
-            shadowColor: '#000',
+            shadowColor: color.shadow,
             width: '80%',
             height: '100%',
-            borderTopWidth: 1,
-            elevation: 20,
+            borderRightColor: color.neutral._400,
+            borderRightWidth: 1,
+            elevation: 12,
             position: 'absolute',
         },
     })

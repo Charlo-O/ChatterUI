@@ -34,9 +34,9 @@ export namespace Theme {
         persist(
             (set, get) => ({
                 useSystemDarkMode: true,
-                color: DefaultColorSchemes.lavenderDark,
-                darkColor: DefaultColorSchemes.lavenderDark,
-                lightColor: DefaultColorSchemes.lavenderLight,
+                color: DefaultColorSchemes.noocLight,
+                darkColor: DefaultColorSchemes.noocDark,
+                lightColor: DefaultColorSchemes.noocLight,
                 setColor: (color) => {
                     set({ color: color })
                 },
@@ -86,11 +86,11 @@ export namespace Theme {
                     let lightColor = get().lightColor
                     let darkColor = get().darkColor
                     if (removed) {
-                        if (removed.name === color.name) color = DefaultColorSchemes.lavenderDark
+                        if (removed.name === color.name) color = DefaultColorSchemes.noocLight
                         if (removed.name === lightColor.name)
-                            lightColor = DefaultColorSchemes.lavenderLight
+                            lightColor = DefaultColorSchemes.noocLight
                         if (removed.name === darkColor.name)
-                            darkColor = DefaultColorSchemes.lavenderDark
+                            darkColor = DefaultColorSchemes.noocDark
                     }
                     set({
                         customColors: colors,
@@ -103,7 +103,7 @@ export namespace Theme {
             {
                 name: Storage.ColorState,
                 storage: createMMKVStorage(),
-                version: 2,
+                version: 3,
                 partialize: (state) => ({
                     color: state.color,
                     customColors: state.customColors,
@@ -113,9 +113,28 @@ export namespace Theme {
                 }),
                 migrate: (persistedState: any, version) => {
                     if (version === 1) {
-                        persistedState.darkColor = DefaultColorSchemes.lavenderDark
-                        persistedState.lightColor = DefaultColorSchemes.lavenderLight
+                        persistedState.darkColor = DefaultColorSchemes.noocDark
+                        persistedState.lightColor = DefaultColorSchemes.noocLight
                         persistedState.useSystemDarkMode = false
+                    }
+                    if (version < 3) {
+                        if (
+                            persistedState.color?.name === DefaultColorSchemes.lavenderDark.name ||
+                            persistedState.color?.name === DefaultColorSchemes.lavenderLight.name
+                        ) {
+                            persistedState.color = DefaultColorSchemes.noocLight
+                        }
+                        if (
+                            persistedState.lightColor?.name ===
+                            DefaultColorSchemes.lavenderLight.name
+                        ) {
+                            persistedState.lightColor = DefaultColorSchemes.noocLight
+                        }
+                        if (
+                            persistedState.darkColor?.name === DefaultColorSchemes.lavenderDark.name
+                        ) {
+                            persistedState.darkColor = DefaultColorSchemes.noocDark
+                        }
                     }
                     return persistedState
                 },
@@ -124,10 +143,10 @@ export namespace Theme {
     )
     // TODO: State-ify
     const spacing = {
-        xs: 2,
-        s: 4,
-        sm: 6,
-        m: 8,
+        xs: 4,
+        s: 6,
+        sm: 8,
+        m: 10,
         l: 12,
         xl: 16,
         xl2: 24,
@@ -136,17 +155,17 @@ export namespace Theme {
 
     const borderWidth = {
         s: 1,
-        m: 2,
-        l: 4,
-        xl: 8,
+        m: 1,
+        l: 2,
+        xl: 4,
     }
 
     const borderRadius = {
-        s: 4,
-        m: 8,
-        l: 12,
-        xl: 16,
-        xl2: 24,
+        s: 8,
+        m: 12,
+        l: 18,
+        xl: 22,
+        xl2: 28,
         xl3: 32,
     }
 

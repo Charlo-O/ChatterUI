@@ -75,7 +75,7 @@ export const AlertProvider = () => {
 }
 
 const useStyles = () => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
+    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
 
     return StyleSheet.create({
         modal: {
@@ -89,24 +89,35 @@ const useStyles = () => {
 
         textBox: {
             backgroundColor: color.neutral._200,
+            borderColor: color.neutral._400,
+            borderWidth: 1,
             paddingHorizontal: spacing.xl2,
             paddingBottom: spacing.xl,
             paddingTop: spacing.xl2,
-            borderRadius: borderRadius.xl,
-            width: '90%',
+            borderRadius: borderRadius.xl2,
+            width: '88%',
+            boxShadow: [
+                {
+                    offsetX: 0,
+                    offsetY: 12,
+                    blurRadius: 32,
+                    color: color.shadow + '24',
+                },
+            ],
         },
 
         title: {
             color: color.text._100,
-            fontSize: 20,
-            fontWeight: '500',
+            fontSize: fontSize.xl,
+            fontWeight: '600',
             marginBottom: spacing.l,
         },
 
         description: {
-            color: color.text._100,
+            color: color.text._300,
             marginBottom: spacing.l,
-            fontSize: spacing.xl,
+            fontSize: fontSize.m,
+            lineHeight: 21,
         },
 
         buttonContainer: {

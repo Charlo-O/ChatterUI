@@ -30,6 +30,108 @@ export const themeColorSchemaV1 = z.object({
 export type ThemeColor = z.infer<typeof themeColorSchemaV1>
 
 export namespace DefaultColorSchemes {
+    export const noocLight: ThemeColor = {
+        version: 1,
+        name: 'Nooc Light',
+        primary: {
+            _100: '#F0F0ED',
+            _200: '#E2E2DE',
+            _300: '#CACAC4',
+            _400: '#92928B',
+            _500: '#171715',
+            _600: '#141412',
+            _700: '#111110',
+            _800: '#0E0E0D',
+            _900: '#0B0B0A',
+        },
+        neutral: {
+            _100: '#F6F6F3',
+            _200: '#FBFBF8',
+            _300: '#EFEFEC',
+            _400: '#DDDDD8',
+            _500: '#C4C4BE',
+            _600: '#A5A59E',
+            _700: '#7A7A73',
+            _800: '#3D3D39',
+            _900: '#1A1A18',
+        },
+        error: {
+            _100: '#F8EBE9',
+            _200: '#E9C5C0',
+            _300: '#B65045',
+            _400: '#9F3F35',
+            _500: '#87342C',
+            _600: '#702B25',
+            _700: '#5A231E',
+            _800: '#461B17',
+            _900: '#341411',
+        },
+        text: {
+            _100: '#171715',
+            _200: '#2D2D2A',
+            _300: '#464642',
+            _400: '#666660',
+            _500: '#808079',
+            _600: '#9A9A93',
+            _700: '#B4B4AD',
+            _800: '#D8D8D2',
+            _900: '#F8F8F5',
+        },
+        quote: '#575751',
+        shadow: '#1A1A18',
+    }
+
+    export const noocDark: ThemeColor = {
+        version: 1,
+        name: 'Nooc Dark',
+        primary: {
+            _100: '#2A2A27',
+            _200: '#41413C',
+            _300: '#6A6A63',
+            _400: '#B2B2AA',
+            _500: '#F2F2EE',
+            _600: '#F5F5F1',
+            _700: '#F7F7F3',
+            _800: '#F9F9F5',
+            _900: '#FBFBF8',
+        },
+        neutral: {
+            _100: '#121210',
+            _200: '#1B1B19',
+            _300: '#252522',
+            _400: '#393935',
+            _500: '#55554F',
+            _600: '#72726A',
+            _700: '#96968D',
+            _800: '#C5C5BD',
+            _900: '#F3F3EF',
+        },
+        error: {
+            _100: '#341411',
+            _200: '#5A231E',
+            _300: '#F09A90',
+            _400: '#E4796E',
+            _500: '#CD5E53',
+            _600: '#B64D43',
+            _700: '#9F4037',
+            _800: '#85342E',
+            _900: '#6C2A25',
+        },
+        text: {
+            _100: '#F3F3EF',
+            _200: '#E4E4DF',
+            _300: '#CECEC7',
+            _400: '#A9A9A1',
+            _500: '#898981',
+            _600: '#6D6D66',
+            _700: '#53534E',
+            _800: '#343431',
+            _900: '#151513',
+        },
+        quote: '#AFAFA7',
+        shadow: '#0B0B0A',
+    }
+
     export const lavenderDark: ThemeColor = {
         version: 1,
         name: 'Lavender Dark',
@@ -336,5 +438,14 @@ export namespace DefaultColorSchemes {
         shadow: '#000000',
     }
 
-    export const schemes = [lavenderDark, lavenderLight, amoled, navyDark, hotPink, retroGreen]
+    export const schemes = [
+        noocLight,
+        noocDark,
+        lavenderDark,
+        lavenderLight,
+        amoled,
+        navyDark,
+        hotPink,
+        retroGreen,
+    ]
 }

@@ -2,11 +2,11 @@ import { AntDesign } from '@expo/vector-icons'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import { SplashScreen } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import ThemedButton from '@components/buttons/ThemedButton'
 import HeaderTitle from '@components/views/HeaderTitle'
-import { db } from '@db'
+import { db, dbReady } from '@db'
 import useLocalAuth from '@lib/hooks/LocalAuth'
 import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -15,7 +15,7 @@ import CharacterList from '@screens/CharacterListScreen'
 
 import migrations from '../db/migrations/migrations'
 
-const Home = () => {
+const HomeWithDatabase = () => {
     const { color } = Theme.useTheme()
     const { t } = useI18n()
     const styles = useStyles()
@@ -88,6 +88,31 @@ const Home = () => {
         )
     if (!firstRender && success) return <CharacterList />
     return <HeaderTitle />
+}
+
+const Home = () => {
+    const [databaseReady, setDatabaseReady] = useState(Platform.OS !== 'web')
+    const [databaseError, setDatabaseError] = useState<Error>()
+
+    useEffect(() => {
+        if (Platform.OS !== 'web') return
+        void dbReady
+            .then(() => setDatabaseReady(true))
+            .catch((error) => {
+                setDatabaseError(error instanceof Error ? error : new Error(String(error)))
+                setDatabaseReady(true)
+            })
+    }, [])
+
+    if (!databaseReady) return <HeaderTitle />
+    if (databaseError)
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <HeaderTitle />
+                <Text>{databaseError.message}</Text>
+            </View>
+        )
+    return <HomeWithDatabase />
 }
 
 export default Home

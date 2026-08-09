@@ -45,10 +45,10 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
             <View
                 style={{
                     flex: 1,
-                    paddingHorizontal: 8,
-                    paddingVertical: 8,
-                    borderRadius: 16,
-                    backgroundColor: color.neutral._100 + 'bb',
+                    paddingHorizontal: spacing.m,
+                    paddingVertical: spacing.m,
+                    borderRadius: borderRadius.l,
+                    backgroundColor: color.neutral._100 + 'E6',
                 }}>
                 <View
                     style={{
@@ -59,9 +59,9 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
                     <TouchableOpacity onPress={() => setShowViewer(true, message.is_user)}>
                         <Avatar
                             style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: borderRadius.xl,
+                                width: 40,
+                                height: 40,
+                                borderRadius: borderRadius.l,
                                 marginRight: message.is_user && alternate ? 0 : spacing.l,
                                 marginLeft: message.is_user && alternate ? spacing.l : 0,
                             }}
@@ -75,6 +75,7 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
                             style={{
                                 fontSize: fontSize.l,
                                 color: color.text._100,
+                                fontWeight: '600',
                             }}>
                             {message.name}
                         </Text>
@@ -107,9 +108,9 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
                     <TouchableOpacity onPress={() => setShowViewer(true, message.is_user)}>
                         <Avatar
                             style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: borderRadius.xl,
+                                width: 40,
+                                height: 40,
+                                borderRadius: borderRadius.l,
                                 marginLeft: spacing.sm,
                                 marginRight: spacing.m,
                             }}
@@ -119,9 +120,11 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
                         />
                     </TouchableOpacity>
 
-                    <Text style={{ color: color.text._400 }}>#{index}</Text>
+                    <Text style={{ color: color.text._600, fontSize: fontSize.s }}>#{index}</Text>
                     {deltaTime !== undefined && !message.is_user && index !== 0 && (
-                        <Text style={{ color: color.text._400 }}>{deltaTime}s</Text>
+                        <Text style={{ color: color.text._600, fontSize: fontSize.s }}>
+                            {deltaTime}s
+                        </Text>
                     )}
                 </View>
             </View>
@@ -133,6 +136,7 @@ const ChatFrame: React.FC<ChatFrameProps> = ({ children, index, nowGenerating, i
                                 fontSize: fontSize.l,
                                 color: color.text._100,
                                 marginRight: spacing.sm,
+                                fontWeight: '600',
                             }}>
                             {message.name}
                         </Text>

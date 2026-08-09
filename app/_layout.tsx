@@ -27,7 +27,11 @@ const Layout = () => {
                         screenOptions={{
                             headerBackButtonDisplayMode: 'minimal',
                             headerStyle: { backgroundColor: color.neutral._100 },
-                            headerTitleStyle: { color: color.text._100 },
+                            headerTitleStyle: {
+                                color: color.text._100,
+                                fontSize: 15,
+                                fontWeight: '600',
+                            },
                             headerTintColor: color.text._100,
                             contentStyle: { backgroundColor: color.neutral._100 },
                             headerShadowVisible: false,

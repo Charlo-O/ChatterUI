@@ -97,18 +97,21 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
 export default ChatSwipes
 
 const useStyles = () => {
-    const { color, spacing } = Theme.useTheme()
+    const { color, spacing, borderRadius } = Theme.useTheme()
     return StyleSheet.create({
         swipesItem: {
             flexDirection: 'row',
             justifyContent: 'space-evenly',
             flex: 1,
-            marginTop: spacing.sm,
+            marginTop: spacing.s,
+            paddingHorizontal: spacing.sm,
+            borderRadius: borderRadius.xl2,
+            backgroundColor: color.neutral._300,
             zIndex: 32,
         },
 
         swipeText: {
-            color: color.text._200,
+            color: color.text._400,
             paddingVertical: spacing.sm,
             paddingHorizontal: spacing.m,
         },

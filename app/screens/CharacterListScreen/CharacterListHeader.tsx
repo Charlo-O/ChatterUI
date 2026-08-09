@@ -78,20 +78,20 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                 style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                    paddingLeft: 16,
-                    paddingRight: 8,
+                    paddingLeft: 2,
+                    paddingRight: 0,
                     paddingBottom: 12,
                 }}>
                 <View
                     style={{
-                        columnGap: 12,
+                        columnGap: 8,
                         flexDirection: 'row',
                         alignItems: 'center',
                     }}>
                     <TText
                         style={{
-                            color: color.text._400,
-                            fontSize: 16,
+                            color: color.text._500,
+                            fontSize: 12,
                         }}>
                         Sort By
                     </TText>
@@ -101,7 +101,7 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                 <View
                     style={{
                         flexDirection: 'row',
-                        columnGap: 12,
+                        columnGap: 4,
                     }}>
                     <ThemedButton
                         iconName="tag"

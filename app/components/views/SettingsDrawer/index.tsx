@@ -19,7 +19,7 @@ const SettingsDrawer = () => {
         <Drawer.Body
             drawerID={Drawer.ID.SETTINGS}
             drawerStyle={{
-                width: '60%',
+                width: '78%',
                 paddingBottom: spacing.xl,
             }}>
             <UserInfo />
@@ -28,9 +28,10 @@ const SettingsDrawer = () => {
             <Text
                 style={{
                     alignSelf: 'center',
-                    color: color.text._300,
+                    color: color.text._600,
                     marginTop: spacing.l,
-                    marginBottom: spacing.xl2,
+                    marginBottom: spacing.xl,
+                    fontSize: 12,
                 }}>
                 {__DEV__ && 'DEV BUILD\t'}
                 {devMode && 'DEV MODE\t'}

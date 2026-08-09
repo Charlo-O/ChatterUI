@@ -101,8 +101,8 @@ export namespace MarkdownStyle {
         },
     }
 
-    export const useCustomFormatting = () => {
-        const mdStyle = useMarkdownStyle()
+    export const useCustomFormatting = (inverted = false) => {
+        const mdStyle = useMarkdownStyle(inverted)
 
         const { markdown, rules, style } = useMemo(
             () => ({
@@ -115,9 +115,12 @@ export namespace MarkdownStyle {
         return { markdown, rules, style }
     }
 
-    export const useMarkdownStyle = () => {
+    export const useMarkdownStyle = (inverted = false) => {
         const { color, spacing, borderRadius } = Theme.useTheme()
         const { fontSize, textWeight } = ChatStyle.useChatStyle()
+        const foreground = inverted ? color.text._900 : color.text._100
+        const foregroundMuted = inverted ? color.text._700 : color.text._400
+        const insetSurface = inverted ? color.primary._600 : color.neutral._200
 
         const getModifiedFontSize = useCallback(
             (size: number) =>
@@ -139,7 +142,7 @@ export namespace MarkdownStyle {
         return useMemo(
             () =>
                 StyleSheet.create({
-                    double_quote: { color: color.quote },
+                    double_quote: { color: foregroundMuted },
                     // The main container
                     body: {},
 
@@ -147,43 +150,43 @@ export namespace MarkdownStyle {
                     heading1: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(32),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
                     heading2: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(24),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
                     heading3: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(18),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
                     heading4: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(16),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
                     heading5: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(13),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
                     heading6: {
                         flexDirection: 'row',
                         fontSize: getModifiedFontSize(11),
-                        color: color.text._100,
+                        color: foreground,
                         fontWeight: getModifiedFontWeight(500),
                     },
 
                     // Horizontal Rule
                     hr: {
-                        backgroundColor: color.primary._500,
+                        backgroundColor: foregroundMuted,
                         height: 1,
                         marginTop: spacing.m,
                     },
@@ -191,25 +194,26 @@ export namespace MarkdownStyle {
                     // Emphasis
                     strong: {
                         fontWeight: getModifiedFontWeight(700),
-                        color: color.text._100,
+                        color: foreground,
                     },
                     em: {
                         fontStyle: 'italic',
-                        color: color.text._400,
+                        color: foregroundMuted,
                     },
                     s: {
                         textDecorationLine: 'line-through',
-                        color: color.text._400,
+                        color: foregroundMuted,
                     },
 
                     // Blockquotes
                     blockquote: {
-                        backgroundColor: color.neutral._200,
-                        borderColor: color.primary._500,
-                        borderLeftWidth: 4,
+                        backgroundColor: insetSurface,
+                        borderColor: foregroundMuted,
+                        borderWidth: 1,
+                        borderRadius: borderRadius.m,
                         marginLeft: spacing.sm,
                         paddingHorizontal: spacing.sm,
-                        color: color.text._400,
+                        color: foregroundMuted,
                     },
 
                     // Lists
@@ -222,11 +226,11 @@ export namespace MarkdownStyle {
                     list_item: {
                         flexDirection: 'row',
                         justifyContent: 'flex-start',
-                        color: color.text._100,
+                        color: foreground,
                     },
                     // @pseudo class, does not have a unique render rule
                     bullet_list_icon: {
-                        color: color.text._400,
+                        color: foregroundMuted,
                         marginLeft: spacing.m,
                         marginRight: spacing.m,
                     },
@@ -236,7 +240,7 @@ export namespace MarkdownStyle {
                     },
                     // @pseudo class, does not have a unique render rule
                     ordered_list_icon: {
-                        color: color.text._400,
+                        color: foregroundMuted,
                         marginLeft: spacing.m,
                         marginRight: spacing.m,
                     },
@@ -247,7 +251,7 @@ export namespace MarkdownStyle {
 
                     // Code
                     code_inline: {
-                        backgroundColor: color.neutral._200,
+                        backgroundColor: insetSurface,
                         paddingHorizontal: spacing.m,
                         flex: 1,
                         borderRadius: 4,
@@ -261,10 +265,10 @@ export namespace MarkdownStyle {
                         }),
                     },
                     code_block: {
-                        color: color.text._400,
+                        color: foregroundMuted,
                         borderWidth: 1,
                         borderColor: color.neutral._100,
-                        backgroundColor: color.neutral._200,
+                        backgroundColor: insetSurface,
                         padding: 4,
                         borderRadius: 8,
                         ...Platform.select({
@@ -277,10 +281,10 @@ export namespace MarkdownStyle {
                         }),
                     },
                     fence: {
-                        color: color.text._300,
-                        backgroundColor: color.neutral._100,
-                        borderColor: color.neutral._200,
-                        borderWidth: 2,
+                        color: foreground,
+                        backgroundColor: insetSurface,
+                        borderColor: foregroundMuted,
+                        borderWidth: 1,
                         paddingLeft: spacing.l,
                         paddingRight: spacing.l,
                         paddingVertical: spacing.m,
@@ -298,13 +302,13 @@ export namespace MarkdownStyle {
                     },
 
                     fenceHeader: {
-                        color: color.text._300,
+                        color: foreground,
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         paddingVertical: 4,
                         paddingHorizontal: 12,
-                        backgroundColor: color.neutral._200,
+                        backgroundColor: insetSurface,
                         borderTopLeftRadius: borderRadius.m,
                         borderTopRightRadius: borderRadius.m,
                         marginTop: spacing.sm,
@@ -322,7 +326,7 @@ export namespace MarkdownStyle {
                         backgroundColor: color.neutral._300,
                     },
                     tbody: {
-                        backgroundColor: color.neutral._200,
+                        backgroundColor: insetSurface,
                     },
                     th: {
                         flex: 1,
@@ -342,10 +346,11 @@ export namespace MarkdownStyle {
                     // Links
                     link: {
                         textDecorationLine: 'underline',
+                        color: foreground,
                     },
                     blocklink: {
                         flex: 1,
-                        borderColor: '#000000',
+                        borderColor: foregroundMuted,
                         borderBottomWidth: 1,
                     },
 
@@ -359,13 +364,13 @@ export namespace MarkdownStyle {
 
                     textgroup: {
                         fontWeight: getModifiedFontWeight(400),
-                        color: color.text._100,
+                        color: foreground,
                     },
                     latex_inline: {
-                        color: color.text._300,
+                        color: foreground,
                     },
                     latex_block: {
-                        color: color.text._300,
+                        color: foreground,
                         marginTop: spacing.l,
                         marginBottom: spacing.sm,
                     },
@@ -375,7 +380,7 @@ export namespace MarkdownStyle {
                         alignItems: 'flex-start',
                         justifyContent: 'flex-start',
                         width: '100%',
-                        color: color.text._100,
+                        color: foreground,
                         marginVertical: spacing.sm,
                         fontSize: getModifiedFontSize(14),
                     },
@@ -383,7 +388,7 @@ export namespace MarkdownStyle {
                     hardbreak: {
                         width: '100%',
                         height: 1,
-                        color: color.text._100,
+                        color: foreground,
                     },
                     softbreak: {},
 
@@ -392,7 +397,16 @@ export namespace MarkdownStyle {
                     inline: {},
                     span: {},
                 }),
-            [color, spacing, borderRadius, getModifiedFontSize, getModifiedFontWeight]
+            [
+                color,
+                spacing,
+                borderRadius,
+                foreground,
+                foregroundMuted,
+                insetSurface,
+                getModifiedFontSize,
+                getModifiedFontWeight,
+            ]
         )
     }
 }

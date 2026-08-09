@@ -81,42 +81,52 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
 export default CharacterListing
 
 const useStyles = () => {
-    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
+    const { color, spacing, borderRadius, borderWidth, fontSize } = Theme.useTheme()
 
     return StyleSheet.create({
         longButtonContainer: {
             flexDirection: 'row',
-            backgroundColor: color.neutral._100,
-            borderRadius: borderRadius.m,
+            backgroundColor: color.neutral._200,
+            borderColor: color.neutral._400,
+            borderWidth: borderWidth.s,
+            borderRadius: borderRadius.l,
             flex: 1,
             paddingVertical: spacing.l,
-            paddingHorizontal: spacing.xl,
+            paddingHorizontal: spacing.l,
+            boxShadow: [
+                {
+                    offsetX: 0,
+                    offsetY: 4,
+                    blurRadius: 16,
+                    color: color.shadow + '0D',
+                },
+            ],
         },
 
         avatar: {
             width: 48,
             height: 48,
             borderRadius: borderRadius.l,
-            backgroundColor: color.neutral._200,
-            borderColor: color.neutral._200,
+            backgroundColor: color.neutral._300,
+            borderColor: color.neutral._400,
             borderWidth: 1,
         },
 
         nametag: {
             flex: 1,
             fontSize: fontSize.l,
-            fontWeight: '500',
+            fontWeight: '600',
             color: color.text._100,
         },
 
         timestamp: {
             fontSize: fontSize.s,
-            color: color.text._400,
+            color: color.text._500,
         },
 
         previewText: {
             marginTop: spacing.s,
-            color: color.text._500,
+            color: color.text._400,
         },
     })
 }

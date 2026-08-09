@@ -57,10 +57,10 @@ const useStyles = () => {
 
     return StyleSheet.create({
         optionsButton: {
-            color: color.text._500,
-            padding: 4,
-            backgroundColor: color.neutral._200,
-            borderRadius: 16,
+            color: color.text._400,
+            padding: 8,
+            backgroundColor: color.neutral._300,
+            borderRadius: 999,
         },
     })
 }

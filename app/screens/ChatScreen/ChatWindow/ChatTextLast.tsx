@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { View, Animated, Easing, useAnimatedValue } from 'react-native'
+import { View, Animated, Easing } from 'react-native'
 import Markdown from 'react-native-markdown-display'
 
 import ThemedButton from '@components/buttons/ThemedButton'
@@ -14,7 +14,8 @@ type ChatTextProps = {
 }
 
 const ChatTextLast: React.FC<ChatTextProps> = ({ nowGenerating, index }) => {
-    const { markdown, rules, style } = MarkdownStyle.useCustomFormatting()
+    const inverted = Chats.useEntryData(index).is_user
+    const { markdown, rules, style } = MarkdownStyle.useCustomFormatting(inverted)
 
     const { swipeText, swipeId } = Chats.useSwipeData(index)
     const { buffer } = Chats.useBuffer()
@@ -22,7 +23,7 @@ const ChatTextLast: React.FC<ChatTextProps> = ({ nowGenerating, index }) => {
     const [showHidden, setShowHidden] = useState(false)
     const viewRef = useRef<View>(null)
     const currentSwipeId = useInference((state) => state.currentSwipeId)
-    const animHeight = useAnimatedValue(-1)
+    const [animHeight] = useState(() => new Animated.Value(-1))
     const targetHeight = useRef(-1)
     const firstRender = useRef(true)
 

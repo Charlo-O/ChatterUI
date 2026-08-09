@@ -17,8 +17,8 @@ const ChatFooter = () => {
             }}>
             <View
                 style={{
-                    backgroundColor: color.neutral._100 + '22',
-                    borderRadius: 8,
+                    backgroundColor: color.neutral._300,
+                    borderRadius: 999,
                     paddingHorizontal: 12,
                     paddingVertical: 4,
                     marginBottom: 12,

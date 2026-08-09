@@ -8,7 +8,7 @@ import { Theme } from '@lib/theme/ThemeManager'
 
 const UserInfo = () => {
     const router = useRouter()
-    const { color, spacing, borderWidth, fontSize } = Theme.useTheme()
+    const { color, spacing, borderWidth, borderRadius, fontSize } = Theme.useTheme()
     const { userName, imageID } = Characters.useUserStore(
         useShallow((state) => ({
             userName: state.card?.name,
@@ -22,24 +22,26 @@ const UserInfo = () => {
             }}
             style={{
                 alignItems: 'center',
+                flexDirection: 'row',
                 columnGap: spacing.l,
-                paddingBottom: spacing.xl,
-                paddingTop: spacing.xl2,
                 padding: spacing.xl,
+                borderBottomColor: color.neutral._400,
+                borderBottomWidth: 1,
             }}>
             <Avatar
                 targetImage={Characters.getImageDir(imageID)}
                 style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: spacing.xl,
-                    borderColor: color.primary._500,
-                    borderWidth: borderWidth.m,
-                    marginBottom: spacing.m,
+                    width: 48,
+                    height: 48,
+                    borderRadius: borderRadius.l,
+                    borderColor: color.neutral._400,
+                    borderWidth: borderWidth.s,
                 }}
             />
 
-            <Text style={{ fontSize: fontSize.xl, color: color.text._100 }}>{userName}</Text>
+            <Text style={{ fontSize: fontSize.l, color: color.text._100, fontWeight: '600' }}>
+                {userName}
+            </Text>
         </TouchableOpacity>
     )
 }

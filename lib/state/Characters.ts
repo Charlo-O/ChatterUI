@@ -3,7 +3,6 @@ import { and, asc, desc, eq, gte, inArray, like, notExists, notInArray, sql } fr
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { Asset } from 'expo-asset'
 import * as DocumentPicker from 'expo-document-picker'
-import { Paths } from 'expo-file-system'
 import { useEffect } from 'react'
 import { z } from 'zod'
 import { create } from 'zustand'
@@ -13,9 +12,11 @@ import { db as database } from '@db'
 import { Tokenizer } from '@lib/engine/Tokenizer'
 import { Storage } from '@lib/enums/Storage'
 import {
+    AppDirectory,
     copyFile,
     deleteFile,
     fileExists,
+    FileUtils,
     readBase64Async,
     readStringAsync,
     saveStringToDownload,
@@ -698,7 +699,7 @@ export namespace Characters {
                     return
                 }
                 const imageDir = getImageDir(card.image_id)
-                const imageCacheDir = `${Paths.cache.uri}${card.image_id}`
+                const imageCacheDir = FileUtils.getCacheDir(String(card.image_id))
                 let cacheLoc = ''
 
                 if (fileExists(imageDir)) {
@@ -891,13 +892,13 @@ export namespace Characters {
     }
 
     export const getImageDir = (imageId: number) => {
-        return `${Paths.document.uri}characters/${imageId}.png`
+        return `${AppDirectory.CharacterPath}${imageId}.png`
     }
 
     export const createDefaultCard = async () => {
         const filename = 'aibot'
         const pngName = filename + '.png'
-        const cardDefaultDir = `${Paths.document.uri}appAssets/${pngName}`
+        const cardDefaultDir = `${AppDirectory.Assets}${pngName}`
 
         try {
             if (!fileExists(cardDefaultDir)) {

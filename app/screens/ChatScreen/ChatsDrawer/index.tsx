@@ -157,10 +157,12 @@ const useStyles = () => {
     return StyleSheet.create({
         drawer: {
             backgroundColor: color.neutral._100,
-            width: '90%',
+            width: '88%',
             shadowColor: color.shadow,
-            borderTopWidth: 3,
-            elevation: 20,
+            borderRightWidth: 0,
+            borderLeftColor: color.neutral._400,
+            borderLeftWidth: 1,
+            elevation: 12,
             right: 0,
             position: 'absolute',
             height: '100%',
@@ -170,8 +172,9 @@ const useStyles = () => {
         },
 
         drawerTitle: {
-            color: color.text._300,
-            fontSize: fontSize.xl,
+            color: color.text._100,
+            fontSize: fontSize.xl2,
+            fontWeight: '600',
             paddingLeft: spacing.s,
         },
 
@@ -183,7 +186,6 @@ const useStyles = () => {
         emptyText: {
             color: color.text._400,
             fontSize: fontSize.m,
-            fontStyle: 'italic',
         },
 
         emptyContainer: {

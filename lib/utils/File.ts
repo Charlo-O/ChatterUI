@@ -1,24 +1,28 @@
 import { localDownload } from '@vali98/react-native-fs'
 import { getDocumentAsync } from 'expo-document-picker'
 import { Directory, File, Paths } from 'expo-file-system'
+import { Platform } from 'react-native'
 
 import { Logger } from '../state/Logger'
 
+const documentUri = Platform.OS === 'web' ? 'web://document/' : Paths.document.uri
+const cacheUri = Platform.OS === 'web' ? 'web://cache/' : Paths.cache.uri
+
 export const AppDirectory = {
-    ModelPath: `${Paths.document.uri}models/`,
-    SessionPath: `${Paths.document.uri}session/`,
-    CharacterPath: `${Paths.document.uri}characters/`,
-    Assets: `${Paths.document.uri}appAssets/`,
-    Attachments: `${Paths.document.uri}attachments/`,
+    ModelPath: `${documentUri}models/`,
+    SessionPath: `${documentUri}session/`,
+    CharacterPath: `${documentUri}characters/`,
+    Assets: `${documentUri}appAssets/`,
+    Attachments: `${documentUri}attachments/`,
 }
 
 export namespace FileUtils {
     export const getDocumentDir = (dir: string) => {
-        return `${Paths.document.uri}${dir}`
+        return `${documentUri}${dir}`
     }
 
     export const getCacheDir = (dir: string) => {
-        return `${Paths.cache.uri}${dir}`
+        return `${cacheUri}${dir}`
     }
 
     /**

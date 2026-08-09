@@ -36,14 +36,14 @@ const CharacterListingTags: React.FC<CharacterListingTagsProps> = ({ tags, onPre
                     <TouchableOpacity key={index} onPress={() => onPress(tag)}>
                         <Text
                             style={{
-                                color: color.text._200,
-                                fontSize: fontSize.m,
+                                color: color.text._400,
+                                fontSize: fontSize.s,
                                 borderWidth: 1,
-                                borderColor: color.primary._200,
-                                backgroundColor: color.primary._100,
+                                borderColor: color.neutral._400,
+                                backgroundColor: color.neutral._300,
                                 paddingHorizontal: spacing.l,
                                 paddingVertical: spacing.s,
-                                borderRadius: borderRadius.xl,
+                                borderRadius: borderRadius.xl2,
                             }}>
                             {tag}
                         </Text>

@@ -1,14 +1,6 @@
 import { AntDesign, MaterialIcons } from '@expo/vector-icons'
-import { ReactNode } from 'react'
-import {
-    PressableProps,
-    TextStyle,
-    Pressable,
-    ViewStyle,
-    StyleSheet,
-    Animated,
-    useAnimatedValue,
-} from 'react-native'
+import { ReactNode, useState } from 'react'
+import { PressableProps, TextStyle, Pressable, ViewStyle, StyleSheet, Animated } from 'react-native'
 
 import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -44,35 +36,44 @@ const useButtonTheme = (variant: ButtonVariant): ButtonTheme => {
             return {
                 buttonStyle: {
                     backgroundColor: theme.color.primary._500,
-                    borderColor: theme.color.primary._200,
-                    borderWidth: theme.borderWidth.m,
-                    paddingVertical: theme.spacing.m,
+                    borderColor: theme.color.primary._500,
+                    borderWidth: theme.borderWidth.s,
+                    minHeight: 40,
+                    paddingVertical: theme.spacing.sm,
                     paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.m,
+                    borderRadius: theme.borderRadius.xl2,
                 },
                 labelStyle: {
                     textAlign: 'center',
                     color: theme.color.text._900,
+                    fontWeight: '600',
                 },
             }
         case 'secondary':
             return {
                 buttonStyle: {
-                    borderColor: theme.color.primary._400,
-                    borderWidth: theme.borderWidth.m,
-                    paddingVertical: theme.spacing.m,
+                    backgroundColor: theme.color.neutral._200,
+                    borderColor: theme.color.neutral._400,
+                    borderWidth: theme.borderWidth.s,
+                    minHeight: 40,
+                    paddingVertical: theme.spacing.sm,
                     paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.m,
+                    borderRadius: theme.borderRadius.xl2,
                 },
                 labelStyle: {
                     textAlign: 'center',
-                    color: theme.color.primary._700,
+                    color: theme.color.text._100,
+                    fontWeight: '600',
                 },
             }
         case 'tertiary':
             return {
                 buttonStyle: {
-                    borderWidth: theme.borderWidth.m,
+                    minWidth: 36,
+                    minHeight: 36,
+                    padding: theme.spacing.s,
+                    borderRadius: theme.borderRadius.xl2,
+                    borderWidth: 0,
                     borderColor: 'rgba(0, 0, 0, 0)',
                 },
                 labelStyle: {
@@ -83,29 +84,35 @@ const useButtonTheme = (variant: ButtonVariant): ButtonTheme => {
         case 'critical':
             return {
                 buttonStyle: {
-                    borderColor: theme.color.error._400,
-                    borderWidth: theme.borderWidth.m,
-                    paddingVertical: theme.spacing.m,
+                    backgroundColor: theme.color.neutral._200,
+                    borderColor: theme.color.error._300,
+                    borderWidth: theme.borderWidth.s,
+                    minHeight: 40,
+                    paddingVertical: theme.spacing.sm,
                     paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.m,
+                    borderRadius: theme.borderRadius.xl2,
                 },
                 labelStyle: {
                     textAlign: 'center',
-                    color: theme.color.error._400,
+                    color: theme.color.error._300,
+                    fontWeight: '600',
                 },
             }
         case 'disabled':
             return {
                 buttonStyle: {
-                    borderColor: theme.color.neutral._500,
-                    borderWidth: theme.borderWidth.m,
-                    paddingVertical: theme.spacing.m,
+                    backgroundColor: theme.color.neutral._300,
+                    borderColor: theme.color.neutral._400,
+                    borderWidth: theme.borderWidth.s,
+                    minHeight: 40,
+                    paddingVertical: theme.spacing.sm,
                     paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.m,
+                    borderRadius: theme.borderRadius.xl2,
+                    opacity: 0.55,
                 },
                 labelStyle: {
                     textAlign: 'center',
-                    color: theme.color.neutral._500,
+                    color: theme.color.text._600,
                 },
             }
     }
@@ -126,16 +133,16 @@ const ThemedButton: React.FC<ThemedButtonProps> = ({
     icon = undefined,
     ...rest
 }) => {
-    const animOpacity = useAnimatedValue(1)
+    const [animOpacity] = useState(() => new Animated.Value(1))
     const theme = useButtonTheme(variant)
     const handlePressIn = () => {
-        animOpacity.setValue(0.4)
+        animOpacity.setValue(0.72)
     }
 
     const handlePressOut = () => {
         Animated.timing(animOpacity, {
             toValue: 1,
-            duration: 50,
+            duration: 140,
             useNativeDriver: true,
         }).start()
     }

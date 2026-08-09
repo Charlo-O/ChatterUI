@@ -3,7 +3,7 @@ import { reloadAppAsync } from 'expo'
 import { getDocumentAsync } from 'expo-document-picker'
 import { Paths } from 'expo-file-system'
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Platform, Text, View } from 'react-native'
 
 import ThemedButton from '@components/buttons/ThemedButton'
 import SectionTitle from '@components/text/SectionTitle'
@@ -15,7 +15,8 @@ import appConfig from 'app.config'
 
 const appVersion = appConfig.expo.version
 
-const dbPath = Paths.document.uri + '/SQLite/db.db'
+const dbPath =
+    Platform.OS === 'web' ? 'web://document/SQLite/db.db' : Paths.document.uri + '/SQLite/db.db'
 
 const exportDB = async (notify: boolean = true) => {
     await localDownload(dbPath.replace('file://', ''))
@@ -30,7 +31,7 @@ const importDB = async (uri: string, name: string) => {
         await exportDB(false)
         deleteFile(dbPath)
         if (
-            copyFile({
+            await copyFile({
                 from: uri,
                 to: dbPath,
             })

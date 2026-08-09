@@ -1,17 +1,17 @@
-import { LinearGradient } from 'expo-linear-gradient'
+import { View } from 'react-native'
 
 import { Theme } from '@lib/theme/ThemeManager'
 
 const ChatHeaderGradient = () => {
     const { color } = Theme.useTheme()
     return (
-        <LinearGradient
-            colors={[color.neutral._100, color.neutral._100 + '22']}
+        <View
             style={{
                 position: 'absolute',
                 width: '100%',
                 top: 0,
-                height: 8,
+                height: 1,
+                backgroundColor: color.neutral._400,
             }}
         />
     )

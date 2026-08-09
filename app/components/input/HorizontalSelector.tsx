@@ -57,7 +57,7 @@ const HorizontalSelector = <T,>({
                     width: width - 4,
                     height: height - 4,
                 },
-                { duration: initialRender.current ? 0 : 300, easing: Easing.out(Easing.ease) }
+                { duration: initialRender.current ? 0 : 180, easing: Easing.out(Easing.exp) }
             )
         })
         initialRender.current = false
@@ -80,18 +80,18 @@ const HorizontalSelector = <T,>({
                     flex: style?.flex ?? 1,
                     flexDirection: 'row',
                     justifyContent: 'space-evenly',
-                    borderColor: color.primary._200,
-                    backgroundColor: color.neutral._100,
-                    borderWidth: 2,
-                    borderRadius: 8,
+                    borderColor: color.neutral._400,
+                    backgroundColor: color.neutral._300,
+                    borderWidth: 1,
+                    borderRadius: 999,
                     marginTop: 8,
                 }}>
                 <Animated.View
                     style={[
                         {
                             position: 'absolute',
-                            backgroundColor: color.primary._300,
-                            borderRadius: 8,
+                            backgroundColor: color.primary._500,
+                            borderRadius: 999,
                         },
                         animatedStyle,
                     ]}
@@ -116,13 +116,14 @@ const HorizontalSelector = <T,>({
                                 <MaterialIcons
                                     name={item.icon}
                                     size={item.iconSize ?? 16}
-                                    color={color.text[isSelected ? '_200' : '_500']}
+                                    color={color.text[isSelected ? '_900' : '_500']}
                                 />
                             )}
                             <TText
                                 style={{
-                                    color: color.text[isSelected ? '_200' : '_500'],
+                                    color: color.text[isSelected ? '_900' : '_500'],
                                     fontSize: fontSize.s,
+                                    fontWeight: isSelected ? '600' : '400',
                                 }}>
                                 {item.label}
                             </TText>

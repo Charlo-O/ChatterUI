@@ -110,21 +110,20 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                 exiting={StretchOutY.duration(100)}
                 style={{
                     flexDirection: 'row',
-                    columnGap: 16,
+                    columnGap: 12,
                     alignItems: 'center',
-                    paddingVertical: 4,
-                    paddingHorizontal: 16,
-                    borderRadius: 8,
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 999,
                     borderWidth: 1,
-                    borderColor: color.primary._500,
-                    backgroundColor: color.neutral._100 + 'cc',
+                    borderColor: color.neutral._400,
+                    backgroundColor: color.neutral._200 + 'F2',
                     boxShadow: [
                         {
-                            offsetX: 1,
-                            offsetY: 1,
-                            color: color.shadow,
-                            spreadDistance: 1,
-                            blurRadius: 4,
+                            offsetX: 0,
+                            offsetY: 6,
+                            color: color.shadow + '1A',
+                            blurRadius: 20,
                         },
                     ],
                 }}>
@@ -149,7 +148,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                                 />
                                 <View
                                     style={{
-                                        borderColor: color.primary._500,
+                                        borderColor: color.neutral._400,
                                         borderLeftWidth: 1,
                                         marginLeft: 12,
                                         marginRight: 4,

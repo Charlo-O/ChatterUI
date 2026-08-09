@@ -5,6 +5,7 @@ import { Paths } from 'expo-file-system'
 import * as KeepAwake from 'expo-keep-awake'
 import { router } from 'expo-router'
 import { setBackgroundColorAsync as setUIBackgroundColor } from 'expo-system-ui'
+import { Platform } from 'react-native'
 import { z } from 'zod'
 
 import { Model } from '@lib/engine/Local/Model'
@@ -66,7 +67,10 @@ const setAppDefaultSettings = () => {
 const createDefaultCard = async () => {
     if (!mmkv.getBoolean(AppSettings.CreateDefaultCard)) return
     const result = await Characters.db.query.cardList('character')
-    if (result.length === 0) await Characters.createDefaultCard()
+    if (result.length === 0) {
+        if (Platform.OS === 'web') await Characters.db.mutate.createCard('Assistant', 'character')
+        else await Characters.createDefaultCard()
+    }
     mmkv.set(AppSettings.CreateDefaultCard, false)
 }
 
@@ -142,6 +146,7 @@ const migrateTTSData_0_8_5_to_0_8_6 = () => {
 }
 
 export const generateDefaultDirectories = async () => {
+    if (Platform.OS === 'web') return
     // Removed: 'instruct', 'persona', 'presets', 'lorebooks'
     Object.values(AppDirectory).map((dir) => {
         makeDirectory(dir)
@@ -149,6 +154,7 @@ export const generateDefaultDirectories = async () => {
 }
 
 const migratePresets_0_8_3_to_0_8_4 = async () => {
+    if (Platform.OS === 'web') return
     const presetPath = `${Paths.document.uri}presets`
     const files = listFiles(presetPath)
 
@@ -269,8 +275,10 @@ export const startupApp = () => {
     setKeepAwake()
 
     // Local Model Data in case external models are deleted
-    Model.verifyModelList()
-    Tokenizer.useTokenizerState.getState().loadModel()
+    if (Platform.OS !== 'web') {
+        Model.verifyModelList()
+        Tokenizer.useTokenizerState.getState().loadModel()
+    }
 
     // Fix any missing samplers
     SamplersManager.useSamplerStore.getState().fixConfigs()

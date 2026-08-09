@@ -54,22 +54,21 @@ const ChatBubble: React.FC<ChatTextProps> = ({
                     setShowOptions(nowGenerating ? undefined : index)
                 }}
                 style={{
-                    backgroundColor: color.neutral._200,
-                    borderColor: color.neutral._200,
+                    backgroundColor: message.is_user ? color.primary._500 : color.neutral._200,
+                    borderColor: message.is_user ? color.primary._500 : color.neutral._400,
                     borderWidth: 1,
                     marginBottom: showSwipe ? 0 : 4,
-                    paddingVertical: spacing.sm,
-                    paddingHorizontal: spacing.m,
-                    minHeight: 40,
-                    borderRadius: borderRadius.m,
+                    paddingVertical: spacing.m,
+                    paddingHorizontal: spacing.l,
+                    minHeight: 44,
+                    borderRadius: borderRadius.xl,
                     shadowColor: color.shadow,
                     boxShadow: [
                         {
-                            offsetX: 1,
-                            offsetY: 1,
-                            spreadDistance: 2,
-                            color: color.shadow,
-                            blurRadius: 4,
+                            offsetX: 0,
+                            offsetY: 3,
+                            color: color.shadow + '10',
+                            blurRadius: 12,
                         },
                     ],
                 }}

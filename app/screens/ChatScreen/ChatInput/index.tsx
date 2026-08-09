@@ -5,13 +5,7 @@ import { Image } from 'expo-image'
 import React, { useState } from 'react'
 import { TextInput, TouchableOpacity, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
-import Animated, {
-    BounceIn,
-    FadeIn,
-    FadeOut,
-    LinearTransition,
-    ZoomOut,
-} from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -44,7 +38,7 @@ type ChatInputHeightStoreProps = {
 }
 
 export const useInputHeightStore = create<ChatInputHeightStoreProps>()((set) => ({
-    height: 54,
+    height: 64,
     setHeight: (n) => set({ height: Math.ceil(n) }),
 }))
 
@@ -126,24 +120,23 @@ const ChatInput = () => {
             }}
             style={{
                 position: 'absolute',
-                width: '98%',
+                width: '94%',
                 alignSelf: 'center',
-                bottom: 4,
+                bottom: 8,
                 paddingVertical: spacing.sm,
                 paddingHorizontal: spacing.sm,
-                backgroundColor: color.neutral._100 + 'cc',
+                backgroundColor: color.neutral._200 + 'F5',
                 borderWidth: 1,
-                borderColor: color.neutral._200,
+                borderColor: color.neutral._400,
                 boxShadow: [
                     {
-                        offsetX: 1,
-                        offsetY: 1,
-                        color: color.shadow,
-                        spreadDistance: 1,
-                        blurRadius: 4,
+                        offsetX: 0,
+                        offsetY: 8,
+                        color: color.shadow + '1A',
+                        blurRadius: 24,
                     },
                 ],
-                borderRadius: 16,
+                borderRadius: borderRadius.xl2,
                 rowGap: spacing.m,
             }}>
             <Animated.FlatList
@@ -151,8 +144,8 @@ const ChatInput = () => {
                 style={{
                     display: attachments.length > 0 ? 'flex' : 'none',
                     padding: spacing.l,
-                    backgroundColor: color.neutral._200,
-                    borderRadius: borderRadius.m,
+                    backgroundColor: color.neutral._300,
+                    borderRadius: borderRadius.l,
                 }}
                 horizontal
                 contentContainerStyle={{ columnGap: spacing.xl }}
@@ -161,8 +154,8 @@ const ChatInput = () => {
                 renderItem={({ item }) => {
                     return (
                         <Animated.View
-                            entering={BounceIn}
-                            exiting={ZoomOut.duration(100)}
+                            entering={FadeIn.duration(180)}
+                            exiting={FadeOut.duration(120)}
                             style={{ alignItems: 'center', rowGap: 8 }}>
                             <Image
                                 source={{ uri: item.uri }}
@@ -172,7 +165,7 @@ const ChatInput = () => {
                                     aspectRatio: 1,
                                     borderRadius: borderRadius.m,
                                     borderWidth: 1,
-                                    borderColor: color.primary._500,
+                                    borderColor: color.neutral._400,
                                 }}
                             />
 
@@ -180,13 +173,14 @@ const ChatInput = () => {
                                 iconName="close"
                                 iconSize={20}
                                 buttonStyle={{
-                                    borderWidth: 0,
                                     paddingHorizontal: 2,
                                     paddingVertical: 2,
                                     position: 'absolute',
                                     alignSelf: 'flex-end',
                                     margin: -8,
-                                    backgroundColor: color.neutral._500,
+                                    backgroundColor: color.neutral._200,
+                                    borderColor: color.neutral._400,
+                                    borderWidth: 1,
                                 }}
                                 onPress={() => {
                                     setAttachments(attachments.filter((a) => a.uri !== item.uri))
@@ -250,9 +244,9 @@ const ChatInput = () => {
                                 ]}
                                 triggerStyle={{
                                     color: color.text._400,
-                                    padding: 6,
-                                    backgroundColor: color.neutral._200,
-                                    borderRadius: 16,
+                                    padding: 8,
+                                    backgroundColor: color.neutral._300,
+                                    borderRadius: 999,
                                 }}
                                 placement="top"
                             />
@@ -267,7 +261,7 @@ const ChatInput = () => {
                                 }}
                                 buttonStyle={{
                                     padding: 5,
-                                    backgroundColor: color.neutral._200,
+                                    backgroundColor: color.neutral._300,
                                     borderRadius: 32,
                                 }}
                                 variant="tertiary"
@@ -282,20 +276,22 @@ const ChatInput = () => {
                     ref={inputRef}
                     style={{
                         color: color.text._100,
-                        backgroundColor: color.neutral._100,
+                        backgroundColor: 'transparent',
                         flex: 1,
-                        borderWidth: 2,
-                        borderColor: color.primary._300,
-                        borderRadius: borderRadius.l,
-                        paddingHorizontal: spacing.m,
+                        minHeight: 44,
+                        maxHeight: 124,
+                        borderWidth: 0,
+                        borderRadius: borderRadius.xl,
+                        paddingHorizontal: spacing.sm,
                         paddingVertical: spacing.m,
+                        lineHeight: 21,
                     }}
                     onPress={() => {
                         setHideOptions(!!newMessage)
                     }}
                     numberOfLines={8}
                     placeholder="Message..."
-                    placeholderTextColor={color.text._700}
+                    placeholderTextColor={color.text._600}
                     value={newMessage}
                     onChangeText={(text) => {
                         setHideOptions(!!text)
@@ -308,15 +304,18 @@ const ChatInput = () => {
                 <Animated.View layout={XAxisOnlyTransition}>
                     <TouchableOpacity
                         style={{
-                            borderRadius: borderRadius.m,
+                            width: 42,
+                            height: 42,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 999,
                             backgroundColor: nowGenerating ? color.error._500 : color.primary._500,
-                            padding: spacing.m,
                         }}
                         onPress={nowGenerating ? abortResponse : handleSend}>
                         <MaterialIcons
                             name={nowGenerating ? 'stop' : 'send'}
-                            color={color.neutral._100}
-                            size={24}
+                            color={nowGenerating ? '#F8F8F5' : color.text._900}
+                            size={20}
                         />
                     </TouchableOpacity>
                 </Animated.View>

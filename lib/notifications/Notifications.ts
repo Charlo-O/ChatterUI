@@ -32,10 +32,14 @@ export async function registerForPushNotificationsAsync() {
         })
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    const { status: existingStatus } = (await Notifications.getPermissionsAsync()) as unknown as {
+        status: string
+    }
     let finalStatus = existingStatus
     if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync()
+        const { status } = (await Notifications.requestPermissionsAsync()) as unknown as {
+            status: string
+        }
         finalStatus = status
     }
     if (finalStatus !== 'granted') {

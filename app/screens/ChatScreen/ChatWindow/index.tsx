@@ -109,13 +109,9 @@ const ChatWindow = () => {
                 CellRendererComponent={(props: any) => (
                     <Animated.View
                         {...props}
-                        layout={LinearTransition.duration(250)
-                            .springify()
-                            .mass(0.3)
-                            .damping(20)
-                            .stiffness(300)}
+                        layout={LinearTransition.duration(180)}
                         exiting={FadeOut.duration(150)}
-                        entering={FadeIn.duration(150).delay(100)}
+                        entering={FadeIn.duration(180)}
                     />
                 )}
                 ref={flatlistRef}
@@ -154,8 +150,8 @@ const ChatWindow = () => {
                 }}
                 contentContainerStyle={{
                     paddingTop: chatInputHeight,
-                    paddingBottom: 32,
-                    rowGap: 8,
+                    paddingBottom: 28,
+                    rowGap: 10,
                 }}
                 ListFooterComponent={() => <ChatFooter />}
             />

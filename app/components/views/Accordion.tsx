@@ -27,22 +27,26 @@ const Accordion: React.FC<AccordionProps> = ({
             <Pressable
                 onPress={() => setShow(!show)}
                 style={{
-                    backgroundColor: color.neutral._300,
-                    paddingVertical: spacing.m,
-                    borderTopLeftRadius: borderRadius.m,
-                    borderTopRightRadius: borderRadius.m,
-                    borderBottomLeftRadius: show ? 0 : borderRadius.m,
-                    borderBottomRightRadius: show ? 0 : borderRadius.m,
-                    paddingHorizontal: spacing.l,
+                    backgroundColor: color.neutral._200,
+                    borderColor: color.neutral._400,
+                    borderWidth: 1,
+                    paddingVertical: spacing.l,
+                    borderTopLeftRadius: borderRadius.l,
+                    borderTopRightRadius: borderRadius.l,
+                    borderBottomLeftRadius: show ? 0 : borderRadius.l,
+                    borderBottomRightRadius: show ? 0 : borderRadius.l,
+                    paddingHorizontal: spacing.xl,
                     justifyContent: 'space-between',
                     flexDirection: 'row',
                     alignItems: 'center',
                     ...accordionStyle,
                 }}>
-                <Text style={{ color: color.text._100, ...labelStyle }}>{label}</Text>
+                <Text style={{ color: color.text._100, fontWeight: '600', ...labelStyle }}>
+                    {label}
+                </Text>
                 <Entypo
                     name={show ? 'chevron-up' : 'chevron-down'}
-                    color={color.primary._800}
+                    color={color.text._400}
                     size={18}
                 />
             </Pressable>
@@ -50,14 +54,15 @@ const Accordion: React.FC<AccordionProps> = ({
             {show && (
                 <View
                     style={{
-                        backgroundColor: color.neutral._100,
-                        borderColor: color.neutral._300,
-                        borderWidth: 2,
-                        paddingHorizontal: spacing.l,
-                        paddingTop: spacing.l,
-                        paddingBottom: spacing.m,
-                        borderBottomLeftRadius: borderRadius.m,
-                        borderBottomRightRadius: borderRadius.m,
+                        backgroundColor: color.neutral._200,
+                        borderColor: color.neutral._400,
+                        borderWidth: 1,
+                        borderTopWidth: 0,
+                        paddingHorizontal: spacing.xl,
+                        paddingTop: spacing.xl,
+                        paddingBottom: spacing.l,
+                        borderBottomLeftRadius: borderRadius.l,
+                        borderBottomRightRadius: borderRadius.l,
                     }}>
                     {children}
                 </View>

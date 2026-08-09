@@ -15,13 +15,13 @@ const CharactersEmpty = () => {
                 alignItems: 'center',
                 marginTop: spacing.xl3,
             }}>
-            <MaterialIcons name="person-search" color={color.text._700} size={60} />
+            <MaterialIcons name="person-search" color={color.text._600} size={48} />
             <TText
                 style={{
-                    color: color.text._700,
+                    color: color.text._500,
                     marginTop: spacing.xl,
-                    fontStyle: 'italic',
-                    fontSize: fontSize.l,
+                    fontSize: fontSize.m,
+                    textAlign: 'center',
                 }}>
                 No Characters Found. Try Importing Some!
             </TText>

@@ -23,7 +23,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     onClose,
     sheetStyle,
 }) => {
-    const { color, spacing } = Theme.useTheme()
+    const { color, spacing, borderRadius } = Theme.useTheme()
     const insets = useSafeAreaInsets()
     const { height } = useReanimatedKeyboardAnimation()
     const animatedStyle = useAnimatedStyle(() => {
@@ -58,9 +58,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                             paddingHorizontal: spacing.xl2,
                             maxHeight: '70%',
                             width: '100%',
-                            borderTopLeftRadius: spacing.xl2,
-                            borderTopRightRadius: spacing.xl2,
-                            backgroundColor: color.neutral._100,
+                            borderTopLeftRadius: borderRadius.xl2,
+                            borderTopRightRadius: borderRadius.xl2,
+                            borderColor: color.neutral._400,
+                            borderTopWidth: 1,
+                            backgroundColor: color.neutral._200,
                         },
                         sheetStyle,
                     ]}>

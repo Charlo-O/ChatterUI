@@ -1,8 +1,7 @@
 import { AntDesign } from '@expo/vector-icons'
 import { Href, useRouter } from 'expo-router'
-import { FlatList, StyleSheet, TouchableOpacity } from 'react-native'
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
-import Animated, { Easing, SlideInLeft } from 'react-native-reanimated'
 
 import TText from '@components/text/TText'
 import { AppSettings } from '@lib/constants/GlobalValues'
@@ -23,22 +22,21 @@ type DrawerButtonProps = {
 const DrawerButton = ({ item, index }: DrawerButtonProps) => {
     const styles = useStyles()
     const router = useRouter()
-    const { color } = Theme.useTheme()
     return (
-        <Animated.View
-            key={index}
-            entering={SlideInLeft.duration(500 + index * 30)
-                .withInitialValues({ originX: index * -150 + -400 })
-                .easing(Easing.out(Easing.exp))}>
+        <View key={index}>
             <TouchableOpacity
                 style={styles.largeButton}
                 onPress={() => {
                     router.push(item.path)
                 }}>
-                <AntDesign size={24} name={item.icon ?? 'question'} color={color.text._400} />
+                <AntDesign
+                    size={18}
+                    name={item.icon ?? 'question'}
+                    color={styles.largeButtonText.color}
+                />
                 <TText style={styles.largeButtonText}>{item.name}</TText>
             </TouchableOpacity>
-        </Animated.View>
+        </View>
     )
 }
 
@@ -48,6 +46,7 @@ const RouteList = () => {
     const paths = getPaths(appMode === 'remote')
     return (
         <FlatList
+            contentContainerStyle={{ paddingHorizontal: 8, rowGap: 2 }}
             showsVerticalScrollIndicator={false}
             data={__DEV__ || devMode ? [...paths, ...paths_dev] : paths}
             renderItem={({ item, index }) => <DrawerButton item={item} index={index} />}
@@ -59,19 +58,21 @@ const RouteList = () => {
 export default RouteList
 
 const useStyles = () => {
-    const { color, spacing, fontSize } = Theme.useTheme()
+    const { color, spacing, fontSize, borderRadius } = Theme.useTheme()
     return StyleSheet.create({
         largeButtonText: {
-            fontSize: fontSize.xl,
-            paddingVertical: spacing.l,
-            paddingLeft: spacing.xl,
-            color: color.text._100,
+            fontSize: fontSize.m,
+            color: color.text._300,
+            fontWeight: '500',
         },
 
         largeButton: {
-            paddingLeft: spacing.xl,
+            minHeight: 46,
+            paddingHorizontal: spacing.l,
             flexDirection: 'row',
             alignItems: 'center',
+            columnGap: spacing.l,
+            borderRadius: borderRadius.m,
         },
     })
 }

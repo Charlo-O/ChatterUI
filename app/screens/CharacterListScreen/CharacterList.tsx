@@ -63,7 +63,7 @@ const CharacterList: React.FC = () => {
     if (path !== '/') return
 
     return (
-        <View style={{ paddingTop: 16, paddingHorizontal: 8, flex: 1 }}>
+        <View style={{ paddingTop: 8, paddingHorizontal: 14, flex: 1 }}>
             <HeaderTitle />
             <HeaderButton
                 headerLeft={() => <Drawer.Button drawerID={Drawer.ID.SETTINGS} />}
@@ -78,7 +78,7 @@ const CharacterList: React.FC = () => {
                     layout={LinearTransition}
                     itemLayoutAnimation={LinearTransition}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ rowGap: 16 }}
+                    contentContainerStyle={{ rowGap: 10, paddingBottom: 24 }}
                     data={characterList}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (

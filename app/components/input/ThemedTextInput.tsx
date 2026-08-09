@@ -24,7 +24,7 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
     containerStyle = {},
     ...rest
 }) => {
-    const { color } = Theme.useTheme()
+    const { color, spacing, borderRadius } = Theme.useTheme()
     const { t } = useI18n()
     const ref = useUnfocusTextInput()
 
@@ -38,7 +38,8 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
                 <TText
                     style={{
                         color: color.text._100,
-                        marginBottom: 8,
+                        fontWeight: '500',
+                        marginBottom: spacing.sm,
                     }}>
                     {label}
                 </TText>
@@ -50,17 +51,20 @@ const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
                 style={[
                     {
                         color: color.text._100,
+                        backgroundColor: color.neutral._200,
                         borderColor: color.neutral._400,
                         borderWidth: 1,
-                        paddingVertical: 8,
-                        paddingHorizontal: 12,
-                        borderRadius: 8,
+                        minHeight: 44,
+                        paddingVertical: spacing.m,
+                        paddingHorizontal: spacing.l,
+                        borderRadius: borderRadius.l,
+                        lineHeight: 20,
                         textAlignVertical: numberOfLines && numberOfLines > 1 ? `top` : `center`,
                     },
                     style,
                 ]}
                 placeholder={placeholder ? t(placeholder) : '----'}
-                placeholderTextColor={color.text._500}
+                placeholderTextColor={color.text._600}
                 {...rest}
             />
         </View>

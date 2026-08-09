@@ -71,8 +71,8 @@ const ThemedSlider: React.FC<ThemedSliderProps> = ({
                     maximumValue={max}
                     value={value}
                     onSlidingComplete={handleSliderChange}
-                    minimumTrackTintColor={color.primary._400}
-                    maximumTrackTintColor={color.neutral._600}
+                    minimumTrackTintColor={color.primary._500}
+                    maximumTrackTintColor={color.neutral._400}
                     thumbTintColor={color.primary._500}
                 />
                 {showInput && (
@@ -96,7 +96,7 @@ const ThemedSlider: React.FC<ThemedSliderProps> = ({
 export default ThemedSlider
 
 const useStyles = () => {
-    const { color, spacing } = Theme.useTheme()
+    const { color, spacing, borderRadius } = Theme.useTheme()
     return StyleSheet.create({
         itemName: {
             color: color.text._100,
@@ -118,8 +118,9 @@ const useStyles = () => {
         textBox: {
             borderColor: color.neutral._400,
             color: color.text._100,
+            backgroundColor: color.neutral._200,
             borderWidth: 1,
-            borderRadius: spacing.l,
+            borderRadius: borderRadius.m,
             flex: 1.5,
             textAlign: `center`,
         },
@@ -128,7 +129,8 @@ const useStyles = () => {
             borderColor: color.neutral._700,
             color: color.neutral._700,
             borderWidth: 1,
-            borderRadius: spacing.l,
+            backgroundColor: color.neutral._300,
+            borderRadius: borderRadius.m,
             flex: 1.5,
             textAlign: `center`,
         },
