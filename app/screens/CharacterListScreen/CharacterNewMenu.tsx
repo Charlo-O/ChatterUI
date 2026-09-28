@@ -1,18 +1,24 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import ContextMenu from '@components/views/ContextMenu'
 import InputSheet from '@components/views/InputSheet'
+import { AstryxButton } from '@components/astryx/AstryxPrimitives'
 import { Characters } from '@lib/state/Characters'
 import { Logger } from '@lib/state/Logger'
 
 type CharacterNewMenuProps = {
     nowLoading: boolean
     setNowLoading: (b: boolean) => void
+    trigger?: ReactNode
 }
 
-const CharacterNewMenu: React.FC<CharacterNewMenuProps> = ({ nowLoading, setNowLoading }) => {
+const CharacterNewMenu: React.FC<CharacterNewMenuProps> = ({
+    nowLoading,
+    setNowLoading,
+    trigger,
+}) => {
     const { setCurrentCard } = Characters.useCharacterStore(
         useShallow((state) => ({
             setCurrentCard: state.setCard,
@@ -50,6 +56,7 @@ const CharacterNewMenu: React.FC<CharacterNewMenuProps> = ({ nowLoading, setNowL
             />
 
             <ContextMenu
+                triggerAccessibilityLabel="New character options"
                 triggerIcon="user-add"
                 buttons={[
                     {
@@ -70,6 +77,8 @@ const CharacterNewMenu: React.FC<CharacterNewMenuProps> = ({ nowLoading, setNowL
                     },
                 ]}
                 placement="bottom"
+                triggerStyle={{ color: '#0064E0' }}
+                trigger={trigger ?? <AstryxButton label="New character" variant="primary" iconName="plus" />}
             />
         </>
     )

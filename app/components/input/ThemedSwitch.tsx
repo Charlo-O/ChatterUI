@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, View } from 'react-native'
+import { AccessibilityState, StyleProp, StyleSheet, Switch, View, ViewStyle } from 'react-native'
 
 import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -9,6 +9,11 @@ interface ThemedSwitchProps {
     label?: string
     value: boolean | undefined
     onChangeValue: (b: boolean) => void
+    accessibilityLabel?: string
+    accessibilityHint?: string
+    accessibilityState?: AccessibilityState
+    disabled?: boolean
+    style?: StyleProp<ViewStyle>
 }
 
 const ThemedSwitch: React.FC<ThemedSwitchProps> = ({
@@ -16,46 +21,89 @@ const ThemedSwitch: React.FC<ThemedSwitchProps> = ({
     label,
     value,
     onChangeValue,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityState,
+    disabled = false,
+    style,
 }) => {
-    const { color, spacing } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
+    const isEnabled = Boolean(value)
+
     return (
-        <View>
-            <View
-                style={{ flexDirection: 'row', paddingVertical: spacing.m, alignItems: 'center' }}>
+        <View style={[styles.container, !label && !description && styles.compact, style]}>
+            <View style={[styles.row, { paddingVertical: tokens.spacing.md }]}>
                 <Switch
                     trackColor={{
-                        false: color.neutral._400,
-                        true: color.primary._500,
+                        false: tokens.border.emphasized,
+                        true: tokens.accent.primary,
                     }}
-                    thumbColor={value ? color.text._900 : color.neutral._200}
-                    ios_backgroundColor={color.neutral._400}
+                    thumbColor={isEnabled ? tokens.accent.onPrimary : tokens.background.surface}
+                    ios_backgroundColor={tokens.border.emphasized}
                     onValueChange={onChangeValue}
-                    value={value}
+                    value={isEnabled}
+                    disabled={disabled}
+                    accessibilityLabel={accessibilityLabel ?? label ?? 'Toggle'}
+                    accessibilityHint={accessibilityHint ?? description}
+                    accessibilityState={{
+                        ...(accessibilityState ?? {}),
+                        checked: isEnabled,
+                        disabled,
+                    }}
                 />
                 {label && (
                     <TText
-                        style={{
-                            flex: 1,
-                            marginLeft: spacing.xl,
-                            color: value ? color.text._100 : color.text._400,
-                            fontWeight: '500',
-                        }}>
+                        style={[
+                            styles.label,
+                            {
+                                marginLeft: tokens.spacing.xl,
+                                color: disabled
+                                    ? tokens.text.disabled
+                                    : isEnabled
+                                      ? tokens.text.primary
+                                      : tokens.text.secondary,
+                            },
+                        ]}>
                         {label}
                     </TText>
                 )}
             </View>
             {description && (
                 <TText
-                    style={{
-                        color: color.text._400,
-                        paddingBottom: spacing.xs,
-                        marginBottom: spacing.m,
-                    }}>
+                    style={[
+                        styles.description,
+                        {
+                            color: disabled ? tokens.text.disabled : tokens.text.secondary,
+                            paddingBottom: tokens.spacing.xs,
+                            marginBottom: tokens.spacing.md,
+                        },
+                    ]}>
                     {description}
                 </TText>
             )}
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+    },
+    compact: {
+        width: 'auto',
+        flexShrink: 0,
+    },
+    row: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    label: {
+        flex: 1,
+        fontWeight: '500',
+    },
+    description: {
+        lineHeight: 18,
+    },
+})
 
 export default ThemedSwitch

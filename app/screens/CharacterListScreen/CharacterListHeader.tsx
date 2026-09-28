@@ -7,7 +7,7 @@ import { useMMKVBoolean } from 'react-native-mmkv'
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
 
-import ThemedButton from '@components/buttons/ThemedButton'
+import { AstryxIconButton } from '@components/astryx/AstryxPrimitives'
 import StringArrayEditor from '@components/input/StringArrayEditor'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import TText from '@components/text/TText'
@@ -78,20 +78,20 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                 style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                    paddingLeft: 2,
-                    paddingRight: 0,
+                    alignItems: 'center',
                     paddingBottom: 12,
                 }}>
                 <View
                     style={{
-                        columnGap: 8,
+                        columnGap: 6,
                         flexDirection: 'row',
                         alignItems: 'center',
                     }}>
                     <TText
                         style={{
-                            color: color.text._500,
+                            color: color.text._400,
                             fontSize: 12,
+                            fontWeight: '500',
                         }}>
                         Sort By
                     </TText>
@@ -101,28 +101,26 @@ const CharacterListHeader: React.FC<CharacterListHeaderProps> = ({ resultLength 
                 <View
                     style={{
                         flexDirection: 'row',
-                        columnGap: 4,
+                    columnGap: 2,
                     }}>
-                    <ThemedButton
+                    <AstryxIconButton
                         iconName="tag"
-                        variant="tertiary"
+                        label={showTags ? 'Hide tags' : 'Show tags'}
+                        variant="ghost"
                         onPress={() => {
                             setShowTags(!showTags)
                             if (showTags && tagFilter.length > 0) {
                                 setTagFilter([])
                             }
                         }}
-                        iconStyle={{
-                            color: showTags ? color.text._100 : color.text._700,
-                        }}
                     />
-                    <ThemedButton
-                        variant="tertiary"
+                    <AstryxIconButton
+                        label={showSearch ? 'Close search' : 'Search characters'}
+                        variant="ghost"
                         iconName={showSearch ? 'close' : 'search'}
                         onPress={() => {
                             setShowSearch(!showSearch)
                         }}
-                        iconSize={24}
                         delayLongPress={5000}
                         onLongPress={() => {
                             setUseTagHider(!useTagHider)

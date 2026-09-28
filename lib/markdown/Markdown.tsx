@@ -35,8 +35,9 @@ export namespace MarkdownStyle {
                         <Text style={{ color: styles.fenceHeader.color }}>
                             {sourceInfo || 'Code'}
                         </Text>
-                        {content && (
+                        {Boolean(content) && (
                             <ThemedButton
+                                accessibilityLabel="Copy code"
                                 iconName="copy"
                                 variant="tertiary"
                                 iconStyle={{ color: styles.fenceHeader.color }}
@@ -116,11 +117,11 @@ export namespace MarkdownStyle {
     }
 
     export const useMarkdownStyle = (inverted = false) => {
-        const { color, spacing, borderRadius } = Theme.useTheme()
+        const { color, spacing, borderRadius, glass } = Theme.useTheme()
         const { fontSize, textWeight } = ChatStyle.useChatStyle()
-        const foreground = inverted ? color.text._900 : color.text._100
-        const foregroundMuted = inverted ? color.text._700 : color.text._400
-        const insetSurface = inverted ? color.primary._600 : color.neutral._200
+        const foreground = inverted ? glass.outgoingText : glass.label
+        const foregroundMuted = inverted ? (glass.dark ? '#55555D' : '#D0D0D5') : glass.secondary
+        const insetSurface = inverted ? (glass.dark ? '#E0E0E5' : '#2B2B30') : glass.inset
 
         const getModifiedFontSize = useCallback(
             (size: number) =>
@@ -144,7 +145,10 @@ export namespace MarkdownStyle {
                 StyleSheet.create({
                     double_quote: { color: foregroundMuted },
                     // The main container
-                    body: {},
+                    body: {
+                        fontSize: getModifiedFontSize(17),
+                        color: foreground,
+                    },
 
                     // Headings
                     heading1: {
@@ -381,8 +385,9 @@ export namespace MarkdownStyle {
                         justifyContent: 'flex-start',
                         width: '100%',
                         color: foreground,
-                        marginVertical: spacing.sm,
-                        fontSize: getModifiedFontSize(14),
+                        marginVertical: 6,
+                        fontSize: getModifiedFontSize(17),
+                        lineHeight: getModifiedFontSize(23),
                     },
 
                     hardbreak: {

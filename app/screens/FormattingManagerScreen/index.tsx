@@ -14,10 +14,10 @@ import ThemedCheckbox from '@components/input/ThemedCheckbox'
 import ThemedSwitch from '@components/input/ThemedSwitch'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import SectionTitle from '@components/text/SectionTitle'
+import { AstryxEmptyState } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import Alert from '@components/views/Alert'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import InputSheet from '@components/views/InputSheet'
 import { AppSettings } from '@lib/constants/GlobalValues'
 import useAutosave from '@lib/hooks/AutoSave'
@@ -119,6 +119,7 @@ const FormattingManager = () => {
 
     const headerRight = () => (
         <ContextMenu
+            triggerAccessibilityLabel="Formatting actions"
             triggerIcon="setting"
             triggerIconSize={24}
             placement="bottom"
@@ -165,15 +166,11 @@ const FormattingManager = () => {
 
     if (currentInstruct)
         return (
-            <SafeAreaView
-                edges={['bottom']}
-                key={currentInstruct.id}
-                style={{
-                    marginVertical: spacing.xl,
-                    flex: 1,
-                }}>
-                <HeaderTitle title="Formatting" />
-                <HeaderButton headerRight={headerRight} />
+            <AstryxScreen
+                title="Formatting"
+                subtitle="Message and prompt formatting"
+                actions={headerRight()}>
+                <SafeAreaView edges={['bottom']} key={currentInstruct.id} style={{ flex: 1 }}>
                 <View>
                     <InputSheet
                         title="New Instruct Preset"
@@ -222,7 +219,12 @@ const FormattingManager = () => {
                         modalTitle="Select Config"
                         search
                     />
-                    <ThemedButton iconName="save" iconSize={28} variant="tertiary" />
+                    <ThemedButton
+                        accessibilityLabel="Save formatting"
+                        iconName="save"
+                        iconSize={28}
+                        variant="tertiary"
+                    />
                 </View>
 
                 <KeyboardAwareScrollView
@@ -622,8 +624,37 @@ const FormattingManager = () => {
                                 multiline
                             />*/}
                 </KeyboardAwareScrollView>
-            </SafeAreaView>
+                </SafeAreaView>
+            </AstryxScreen>
         )
+
+    return (
+        <AstryxScreen
+            title="Formatting"
+            subtitle="Message and prompt formatting"
+            actions={headerRight()}>
+            <View style={{ flex: 1 }}>
+                <InputSheet
+                    title="New Instruct Preset"
+                    visible={showNewInstruct}
+                    setVisible={setShowNewInstruct}
+                    onConfirm={(text) => {
+                        if (!text.trim()) return
+                        Instructs.db.mutate
+                            .createInstruct({ ...Instructs.defaultInstruct, name: text.trim() })
+                            .then((id) => loadInstruct(id))
+                    }}
+                />
+                <AstryxEmptyState
+                    icon="format-align-left"
+                    title="No formatting preset"
+                    description="Create a formatting preset to control how prompts are sent to the model."
+                    actionLabel="Create config"
+                    onAction={() => setShowNewInstruct(true)}
+                />
+            </View>
+        </AstryxScreen>
+    )
 }
 
 export default FormattingManager

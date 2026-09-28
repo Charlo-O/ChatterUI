@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import { useEffect, useRef } from 'react'
-import { Pressable, View, ViewStyle } from 'react-native'
+import { AccessibilityState, Pressable, StyleSheet, View, ViewStyle } from 'react-native'
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -24,6 +24,9 @@ type HorizontalSelectorProps<T> = {
     description?: string
     style?: ViewStyle
     capitalizeValues?: string
+    accessibilityLabel?: string
+    accessibilityHint?: string
+    accessibilityState?: AccessibilityState
 }
 
 const HorizontalSelector = <T,>({
@@ -33,8 +36,11 @@ const HorizontalSelector = <T,>({
     label,
     description,
     style,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityState,
 }: HorizontalSelectorProps<T>) => {
-    const { color, spacing, fontSize } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
     const viewRef = useRef<View>(null)
     const initialRender = useRef(true)
     const animatedValues = useSharedValue({
@@ -49,49 +55,45 @@ const HorizontalSelector = <T,>({
 
     useEffect(() => {
         if (!viewRef.current) return
-        viewRef.current.measure((x, y, width, height, pageX, pageY) => {
+        viewRef.current.measure((x, y, width, height) => {
             animatedValues.value = withTiming(
                 {
                     top: y,
                     left: x,
-                    width: width - 4,
-                    height: height - 4,
+                    width: width - tokens.spacing.hairline * 2,
+                    height: height - tokens.spacing.hairline * 2,
                 },
                 { duration: initialRender.current ? 0 : 180, easing: Easing.out(Easing.exp) }
             )
         })
         initialRender.current = false
-    }, [animatedValues, selected])
+    }, [animatedValues, selected, tokens.spacing.hairline])
 
     return (
-        <View style={[{ flex: 1 }, style]}>
-            {label && (
-                <TText
-                    style={{
-                        flex: style?.flex ?? 1,
-                        color: color.text._100,
-                    }}>
-                    {label}
-                </TText>
-            )}
+        <View style={[styles.container, style]}>
+            {label && <TText style={[styles.label, { color: tokens.text.primary }]}>{label}</TText>}
 
             <View
-                style={{
-                    flex: style?.flex ?? 1,
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    borderColor: color.neutral._400,
-                    backgroundColor: color.neutral._300,
-                    borderWidth: 1,
-                    borderRadius: 999,
-                    marginTop: 8,
-                }}>
+                accessibilityRole="tablist"
+                accessibilityLabel={accessibilityLabel ?? label ?? 'Selector'}
+                accessibilityHint={accessibilityHint}
+                accessibilityState={accessibilityState}
+                style={[
+                    styles.selector,
+                    {
+                        backgroundColor: tokens.background.muted,
+                        borderColor: tokens.border.default,
+                        borderRadius: tokens.radius.full,
+                        marginTop: tokens.spacing.sm,
+                    },
+                ]}>
                 <Animated.View
+                    pointerEvents="none"
                     style={[
+                        styles.selectionIndicator,
                         {
-                            position: 'absolute',
-                            backgroundColor: color.primary._500,
-                            borderRadius: 999,
+                            backgroundColor: tokens.accent.primary,
+                            borderRadius: tokens.radius.full,
                         },
                         animatedStyle,
                     ]}
@@ -101,29 +103,35 @@ const HorizontalSelector = <T,>({
                     const isSelected = item.value === selected
                     return (
                         <Pressable
+                            accessibilityRole="tab"
+                            accessibilityLabel={item.label}
+                            accessibilityState={{ selected: isSelected }}
                             ref={isSelected ? viewRef : null}
                             key={index}
                             onPress={() => onPress(item.value)}
-                            style={{
-                                flex: 1,
-                                paddingVertical: spacing.m,
-                                alignItems: 'center',
-                                flexDirection: 'row',
-                                justifyContent: 'center',
-                                columnGap: 8,
-                            }}>
+                            style={[
+                                styles.option,
+                                {
+                                    paddingVertical: tokens.spacing.sm,
+                                    paddingHorizontal: tokens.spacing.md,
+                                },
+                            ]}>
                             {item.icon && (
                                 <MaterialIcons
                                     name={item.icon}
                                     size={item.iconSize ?? 16}
-                                    color={color.text[isSelected ? '_900' : '_500']}
+                                    color={
+                                        isSelected ? tokens.accent.onPrimary : tokens.text.secondary
+                                    }
                                 />
                             )}
                             <TText
                                 style={{
-                                    color: color.text[isSelected ? '_900' : '_500'],
-                                    fontSize: fontSize.s,
-                                    fontWeight: isSelected ? '600' : '400',
+                                    color: isSelected
+                                        ? tokens.accent.onPrimary
+                                        : tokens.text.secondary,
+                                    fontSize: 14,
+                                    fontWeight: isSelected ? '600' : '500',
                                 }}>
                                 {item.label}
                             </TText>
@@ -134,17 +142,57 @@ const HorizontalSelector = <T,>({
 
             {description && (
                 <TText
-                    style={{
-                        color: color.text._400,
-                        marginTop: 4,
-                        paddingBottom: spacing.xs,
-                        marginBottom: spacing.m,
-                    }}>
+                    style={[
+                        styles.description,
+                        {
+                            color: tokens.text.secondary,
+                            marginTop: tokens.spacing.xs,
+                            paddingBottom: tokens.spacing.xs,
+                            marginBottom: tokens.spacing.md,
+                        },
+                    ]}>
                     {description}
                 </TText>
             )}
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    label: {
+        lineHeight: 20,
+    },
+    selector: {
+        alignItems: 'stretch',
+        borderWidth: 1,
+        minHeight: 44,
+        flexShrink: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    selectionIndicator: {
+        bottom: 2,
+        left: 2,
+        position: 'absolute',
+        right: 2,
+        top: 2,
+    },
+    option: {
+        alignItems: 'center',
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        columnGap: 8,
+        zIndex: 1,
+    },
+    description: {
+        lineHeight: 18,
+    },
+})
 
 export default HorizontalSelector

@@ -11,6 +11,7 @@ import { Chats } from '@lib/state/Chat'
 import { Logger } from '@lib/state/Logger'
 
 export const setupNotifications = () => {
+    if (Platform.OS === 'web') return
     Notifications.setNotificationHandler({
         handleNotification: async () => ({
             shouldPlaySound: false,
@@ -23,6 +24,7 @@ export const setupNotifications = () => {
 }
 
 export async function registerForPushNotificationsAsync() {
+    if (Platform.OS === 'web') return false
     if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('chatterUI', {
             name: 'chatterUI',
@@ -84,7 +86,7 @@ export function useAppStateNotificationObserver() {
                     await loadChat(chatId)
                     await setCard(characterId)
                     router.navigate('/screens/ChatScreen')
-                    Notifications.clearLastNotificationResponse()
+                    if (Platform.OS !== 'web') Notifications.clearLastNotificationResponse()
                 } catch (e) {
                     Logger.error('Failed to load chat: ' + e)
                 }
@@ -94,18 +96,24 @@ export function useAppStateNotificationObserver() {
     )
 
     useEffect(() => {
+        if (Platform.OS === 'web') return
+
         const listener = AppState.addEventListener('change', async (nextState) => {
             if (nextState !== 'active') return
 
-            const response = Notifications.getLastNotificationResponse()
-            if (!response?.notification) {
-                if ((await Notifications.getPresentedNotificationsAsync()).length > 0) {
-                    await Notifications.dismissAllNotificationsAsync()
+            try {
+                const response = Notifications.getLastNotificationResponse()
+                if (!response?.notification) {
+                    if ((await Notifications.getPresentedNotificationsAsync()).length > 0) {
+                        await Notifications.dismissAllNotificationsAsync()
+                    }
+                    return
                 }
-                return
-            }
 
-            redirect(response.notification)
+                await redirect(response.notification)
+            } catch (error) {
+                Logger.warn('Notifications are unavailable: ' + String(error))
+            }
         })
 
         return () => {

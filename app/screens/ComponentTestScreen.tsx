@@ -12,6 +12,7 @@ import ThemedCheckbox from '@components/input/ThemedCheckbox'
 import ThemedSlider from '@components/input/ThemedSlider'
 import ThemedSwitch from '@components/input/ThemedSwitch'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import Accordion from '@components/views/Accordion'
 import ContextMenu from '@components/views/ContextMenu'
 import InputSheet from '@components/views/InputSheet'
@@ -44,10 +45,11 @@ const ComponentTestScreen = () => {
     const [showInputSheet, setShowInputSheet] = useState(false)
 
     return (
-        <KeyboardAwareScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ rowGap: 16, padding: 16 }}
-            keyboardShouldPersistTaps="always">
+        <AstryxScreen title="Components" subtitle="Astryx interaction primitives">
+            <KeyboardAwareScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ rowGap: 16, padding: 16 }}
+                keyboardShouldPersistTaps="always">
             <View style={{ rowGap: 8 }}>
                 {buttonVariants.map((item) => (
                     //@ts-expect-error
@@ -81,6 +83,7 @@ const ComponentTestScreen = () => {
             />
 
             <ContextMenu
+                triggerAccessibilityLabel="Context menu demo"
                 buttons={[
                     { label: 'Edit', onPress: () => console.log('Edit pressed') },
                     { label: 'Delete', onPress: () => console.log('Delete pressed') },
@@ -173,7 +176,8 @@ const ComponentTestScreen = () => {
                 onChangeValue={setSelectedM}
                 labelExtractor={(item) => item.label}
             />
-        </KeyboardAwareScrollView>
+            </KeyboardAwareScrollView>
+        </AstryxScreen>
     )
 }
 

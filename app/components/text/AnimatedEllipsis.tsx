@@ -11,6 +11,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated'
 
+import { useI18n } from '@lib/i18n'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const translateMax = -8
@@ -20,7 +21,7 @@ type DotProps = {
 }
 
 const Dot: React.FC<DotProps> = ({ offset }) => {
-    const { color } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
     const progress = useSharedValue(0)
 
     progress.value = useMemo(
@@ -58,20 +59,26 @@ const Dot: React.FC<DotProps> = ({ offset }) => {
 
     return (
         <Animated.View style={animatedStyle}>
-            <Octicons name="dot-fill" size={5} color={color.text._200} />
+            <Octicons name="dot-fill" size={5} color={tokens.text.secondary} />
         </Animated.View>
     )
 }
 
 const AnimatedEllipsis = () => {
+    const { astryx: tokens } = Theme.useTheme()
+    const { t } = useI18n()
+
     return (
         <View
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={t('Generating')}
             style={{
                 flexDirection: 'row',
-                paddingTop: 12,
-                paddingBottom: 8,
-                paddingHorizontal: 4,
-                columnGap: 8,
+                paddingTop: tokens.spacing.md,
+                paddingBottom: tokens.spacing.sm,
+                paddingHorizontal: tokens.spacing.xs,
+                columnGap: tokens.spacing.sm,
             }}>
             <Dot offset={0} />
             <Dot offset={150} />

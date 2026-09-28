@@ -53,37 +53,42 @@ const ConnectionItem: React.FC<ConnectionItemProps> = ({ item, index }) => {
                     setShowEditor(false)
                 }}
             />
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 <ThemedSwitch
+                    accessibilityLabel={`Enable ${item.friendlyName}`}
                     value={item.active}
                     onChangeValue={(value) => {
                         editValue({ ...item, active: value }, index)
                     }}
                 />
 
-                <View style={{ marginLeft: spacing.xl, flex: 1 }}>
+                <View style={{ marginLeft: spacing.l, flex: 1, minWidth: 0 }}>
                     <Text numberOfLines={1} style={item.active ? styles.name : styles.nameInactive}>
                         {item.friendlyName}
                     </Text>
-                    <Text style={item.active ? styles.config : styles.configInactive}>
+                    <Text
+                        numberOfLines={1}
+                        style={item.active ? styles.config : styles.configInactive}>
                         Config: {item.configName}
                     </Text>
                 </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <ThemedButton
+                    accessibilityLabel="Delete connection"
                     onPress={handleDelete}
                     variant="critical"
                     iconName="delete"
                     iconSize={24}
-                    buttonStyle={{ borderWidth: 0 }}
+                    buttonStyle={{ borderWidth: 0, width: 44, paddingHorizontal: 0 }}
                 />
                 <ThemedButton
+                    accessibilityLabel="Edit connection"
                     onPress={() => setShowEditor(true)}
                     variant="tertiary"
                     iconName="edit"
                     iconSize={24}
-                    buttonStyle={{ borderWidth: 0 }}
+                    buttonStyle={{ borderWidth: 0, width: 44, paddingHorizontal: 0 }}
                 />
             </View>
         </View>
@@ -93,29 +98,33 @@ const ConnectionItem: React.FC<ConnectionItemProps> = ({ item, index }) => {
 export default ConnectionItem
 
 const useStyles = () => {
-    const { color, spacing, borderWidth, fontSize } = Theme.useTheme()
+    const { astryx: tokens, spacing, fontSize } = Theme.useTheme()
     return StyleSheet.create({
         longContainer: {
-            borderColor: color.primary._500,
-            borderWidth: borderWidth.m,
+            backgroundColor: tokens.background.card,
+            borderColor: tokens.border.default,
+            borderWidth: 1,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderRadius: spacing.xl,
-            flex: 1,
+            borderRadius: tokens.radius.container,
+            minHeight: 80,
+            gap: 12,
             paddingLeft: spacing.xl,
             paddingRight: spacing.xl,
             paddingVertical: spacing.xl,
         },
 
         longContainerInactive: {
-            borderColor: color.neutral._200,
-            borderWidth: borderWidth.m,
+            backgroundColor: tokens.background.card,
+            borderColor: tokens.border.default,
+            borderWidth: 1,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderRadius: spacing.xl,
-            flex: 1,
+            borderRadius: tokens.radius.container,
+            minHeight: 80,
+            gap: 12,
             paddingLeft: spacing.xl,
             paddingRight: spacing.xl,
             paddingVertical: spacing.xl,
@@ -123,20 +132,25 @@ const useStyles = () => {
 
         name: {
             fontSize: fontSize.l,
-            color: color.text._100,
+            color: tokens.text.primary,
+            fontWeight: '600',
         },
 
         nameInactive: {
             fontSize: fontSize.l,
-            color: color.text._400,
+            color: tokens.text.secondary,
         },
 
         config: {
-            color: color.text._400,
+            color: tokens.text.secondary,
+            fontSize: 13,
+            marginTop: 4,
         },
 
         configInactive: {
-            color: color.text._700,
+            color: tokens.text.muted,
+            fontSize: 13,
+            marginTop: 4,
         },
     })
 }

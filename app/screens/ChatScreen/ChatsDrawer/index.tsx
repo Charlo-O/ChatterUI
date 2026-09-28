@@ -76,6 +76,7 @@ const ChatsDrawer = () => {
                 style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
                 <TText style={styles.drawerTitle}>{showSearchBar ? 'Search' : 'Chats'}</TText>
                 <ThemedButton
+                    accessibilityLabel={showSearchBar ? 'Close chat search' : 'Search chats'}
                     variant="tertiary"
                     iconName={showSearchBar ? 'backward' : 'search'}
                     onPress={() => {

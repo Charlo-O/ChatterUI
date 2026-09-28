@@ -18,6 +18,7 @@ const ChatOptions = () => {
 
     return (
         <ContextMenu
+            triggerAccessibilityLabel="Chat options"
             buttons={[
                 {
                     onPress: (close) => {
@@ -45,7 +46,7 @@ const ChatOptions = () => {
                 },
             ]}
             placement="top">
-            <Ionicons name="caret-up" style={styles.optionsButton} size={24} />
+            <Ionicons name="options-outline" style={styles.optionsButton} size={24} />
         </ContextMenu>
     )
 }
@@ -53,13 +54,16 @@ const ChatOptions = () => {
 export default ChatOptions
 
 const useStyles = () => {
-    const { color } = Theme.useTheme()
+    const { glass } = Theme.useTheme()
 
     return StyleSheet.create({
         optionsButton: {
-            color: color.text._400,
-            padding: 8,
-            backgroundColor: color.neutral._300,
+            color: glass.secondary,
+            padding: 10,
+            width: 44,
+            height: 44,
+            textAlign: 'center',
+            backgroundColor: 'transparent',
             borderRadius: 999,
         },
     })

@@ -17,6 +17,9 @@ const DropdownItem: React.FC<DropdownItemProps> = ({ label, active, onValueChang
     const styles = useDropdownStyles()
     return (
         <Pressable
+            accessibilityRole="checkbox"
+            accessibilityLabel={label}
+            accessibilityState={{ checked: active }}
             style={active ? styles.listItemSelected : styles.listItem}
             onPress={() => {
                 onValueChange(!active)
@@ -37,6 +40,9 @@ type DropdownSheetProps<T> = {
     placeholder?: string
     modalTitle?: string
     closeOnSelect?: boolean
+    accessibilityLabel?: string
+    accessibilityHint?: string
+    disabled?: boolean
 }
 
 const MultiDropdownSheet = <T,>({
@@ -52,9 +58,12 @@ const MultiDropdownSheet = <T,>({
     },
     search = false,
     closeOnSelect = true,
+    accessibilityLabel,
+    accessibilityHint,
+    disabled = false,
 }: DropdownSheetProps<T>) => {
     const styles = useDropdownStyles()
-    const { color, spacing } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
     const { t } = useI18n()
     const [showList, setShowList] = useState(false)
     const [searchFilter, setSearchFilter] = useState('')
@@ -64,6 +73,10 @@ const MultiDropdownSheet = <T,>({
             ?.toLowerCase()
             .includes(searchFilter.toLowerCase() ?? true)
     )
+    const selectedCount = selected?.length ?? 0
+    const triggerLabel =
+        selectedCount > 0 ? t('Selected {{count}} items', { count: selectedCount }) : placeholder
+
     return (
         <View style={containerStyle}>
             <BottomSheet
@@ -72,28 +85,26 @@ const MultiDropdownSheet = <T,>({
                 onClose={() => {
                     setSearchFilter('')
                 }}>
-                <View
-                    style={{
-                        marginBottom: spacing.xl2,
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                    }}>
+                <View style={styles.modalHeader}>
                     <TText style={styles.modalTitle}>{modalTitle}</TText>
                     <TText style={styles.counterText}>
-                        {selected.length > 0
-                            ? t(selected.length > 1 ? 'Selected {{count}} items' : 'Selected {{count}} item', {
-                                  count: selected.length,
-                              })
+                        {selectedCount > 0
+                            ? t(
+                                  selectedCount > 1
+                                      ? 'Selected {{count}} items'
+                                      : 'Selected {{count}} item',
+                                  { count: selectedCount }
+                              )
                             : t('No items selected')}
                     </TText>
                 </View>
                 {items.length > 0 ? (
                     <FlatList
-                        contentContainerStyle={{ rowGap: 2 }}
+                        contentContainerStyle={{ rowGap: tokens.spacing.hairline }}
                         showsVerticalScrollIndicator={false}
                         data={items}
                         keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item, index }) => (
+                        renderItem={({ item }) => (
                             <DropdownItem
                                 label={labelExtractor(item)}
                                 active={selected?.some(
@@ -101,21 +112,21 @@ const MultiDropdownSheet = <T,>({
                                 )}
                                 onValueChange={(active) => {
                                     if (!active && selected.length > 0) {
-                                        const data = selected.filter(
+                                        const next = selected.filter(
                                             (e) => labelExtractor(e) !== labelExtractor(item)
                                         )
-                                        onChangeValue(data)
+                                        onChangeValue(next)
                                     } else {
-                                        // we duplicate for a fresh reference
-                                        const data = [...selected]
+                                        // Duplicate for a fresh reference, preserving existing callers' behavior.
+                                        const next = [...selected]
                                         if (
                                             selected.some(
                                                 (e) => labelExtractor(e) === labelExtractor(item)
                                             )
                                         )
                                             return
-                                        data.push(item)
-                                        onChangeValue(data)
+                                        next.push(item)
+                                        onChangeValue(next)
                                     }
                                 }}
                             />
@@ -126,22 +137,29 @@ const MultiDropdownSheet = <T,>({
                 )}
                 {search && (
                     <TextInput
+                        accessibilityLabel={t('Filter...')}
                         placeholder={t('Filter...')}
-                        placeholderTextColor={color.text._300}
+                        placeholderTextColor={tokens.text.muted}
                         style={styles.searchBar}
                         value={searchFilter}
                         onChangeText={setSearchFilter}
                     />
                 )}
             </BottomSheet>
-            <Pressable style={[style, styles.button]} onPress={() => setShowList(true)}>
-                {selected && selected.length > 0 && (
-                    <TText style={styles.buttonText}>{t('Selected {{count}} items', { count: selected.length })}</TText>
-                )}
-                {(!selected || selected.length === 0) && (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel ?? triggerLabel}
+                accessibilityHint={accessibilityHint ?? modalTitle}
+                accessibilityState={{ disabled: disabled, expanded: showList }}
+                disabled={disabled}
+                style={[style, styles.button, disabled && styles.buttonDisabled]}
+                onPress={() => setShowList(true)}>
+                {selectedCount > 0 ? (
+                    <TText style={styles.buttonText}>{triggerLabel}</TText>
+                ) : (
                     <TText style={styles.placeholderText}>{placeholder}</TText>
                 )}
-                <Entypo name="chevron-down" color={color.primary._800} size={18} />
+                <Entypo name="chevron-down" color={tokens.text.secondary} size={18} />
             </Pressable>
         </View>
     )
@@ -150,66 +168,96 @@ const MultiDropdownSheet = <T,>({
 export default MultiDropdownSheet
 
 export const useDropdownStyles = () => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
     return StyleSheet.create({
         button: {
-            paddingHorizontal: spacing.xl,
-            paddingVertical: spacing.m,
+            minHeight: tokens.size.lg,
+            paddingHorizontal: tokens.spacing.md,
+            paddingVertical: tokens.spacing.sm,
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            borderRadius: borderRadius.m,
-            backgroundColor: color.primary._300,
+            borderRadius: tokens.radius.element,
+            borderWidth: 1,
+            borderColor: tokens.border.default,
+            backgroundColor: tokens.background.muted,
+        },
+        buttonDisabled: {
+            opacity: 0.52,
         },
         buttonText: {
-            color: color.text._100,
+            color: tokens.text.primary,
+            fontSize: 14,
+            fontWeight: '500',
         },
         placeholderText: {
-            color: color.text._300,
+            color: tokens.text.muted,
+            fontSize: 14,
+        },
+
+        modalHeader: {
+            marginBottom: tokens.spacing.xl,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: tokens.spacing.md,
         },
 
         modalTitle: {
-            color: color.text._300,
+            color: tokens.text.primary,
             fontSize: 20,
-            fontWeight: '500',
-            paddingBottom: spacing.xl2,
+            fontWeight: '600',
+            paddingBottom: tokens.spacing.sm,
         },
 
         listItem: {
-            paddingVertical: spacing.xl,
-            paddingHorizontal: spacing.xl2,
+            minHeight: tokens.size.lg,
+            paddingVertical: tokens.spacing.md,
+            paddingHorizontal: tokens.spacing.md,
+            justifyContent: 'center',
+            borderRadius: tokens.radius.inner,
         },
 
         listItemSelected: {
-            paddingVertical: spacing.xl,
-            paddingHorizontal: spacing.xl2,
-            backgroundColor: color.primary._200,
-            borderRadius: borderRadius.xl,
+            minHeight: tokens.size.lg,
+            paddingVertical: tokens.spacing.md,
+            paddingHorizontal: tokens.spacing.md,
+            justifyContent: 'center',
+            backgroundColor: tokens.accent.muted,
+            borderRadius: tokens.radius.inner,
+            borderWidth: 1,
+            borderColor: tokens.border.default,
         },
 
         emptyText: {
-            color: color.text._400,
-            padding: spacing.xl,
+            color: tokens.text.muted,
+            padding: tokens.spacing.xl,
+            textAlign: 'center',
         },
 
         listItemText: {
-            color: color.text._200,
+            color: tokens.text.primary,
             fontSize: 16,
         },
 
         searchBar: {
-            marginTop: spacing.l,
-            borderRadius: borderRadius.m,
-            padding: spacing.l,
-            backgroundColor: color.neutral._200,
-            color: color.text._100,
+            marginTop: tokens.spacing.lg,
+            minHeight: tokens.size.lg,
+            borderRadius: tokens.radius.element,
+            borderWidth: 1,
+            borderColor: tokens.border.default,
+            paddingHorizontal: tokens.spacing.md,
+            paddingVertical: tokens.spacing.sm,
+            backgroundColor: tokens.background.surface,
+            color: tokens.text.primary,
             textAlignVertical: 'center',
         },
 
         counterText: {
-            color: color.text._800,
+            color: tokens.text.secondary,
             fontSize: 14,
-            paddingBottom: spacing.xl2,
+            paddingBottom: tokens.spacing.sm,
+            textAlign: 'right',
         },
     })
 }

@@ -28,6 +28,7 @@ const ModelNewMenu: React.FC<ModelNewMenuProps> = ({ modelImporting, setModelImp
     return (
         <View>
             <ContextMenu
+                triggerAccessibilityLabel="Model import options"
                 placement="bottom"
                 triggerIcon="file-add"
                 disabled={modelImporting}

@@ -2,11 +2,11 @@ import { StyleSheet, Text, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 import { useShallow } from 'zustand/react/shallow'
 
-import Avatar from '@components/views/Avatar'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
+import GlassPortrait from '@components/liquid/GlassPortrait'
 import { AppSettings } from '@lib/constants/GlobalValues'
 import { Characters, CharInfo } from '@lib/state/Characters'
 import { CharacterSorter } from '@lib/state/CharacterSorter'
-import { Theme } from '@lib/theme/ThemeManager'
 import { getFriendlyTimeStamp } from '@lib/utils/Time'
 
 import CharacterEditPopup from './CharacterEditPopup'
@@ -45,16 +45,21 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
                 setNowLoading={setNowLoading}
                 nowLoading={nowLoading}>
                 <View style={styles.longButtonContainer}>
-                    <Avatar
-                        targetImage={Characters.getImageDir(character.image_id)}
-                        style={styles.avatar}
-                    />
+                    <GlassPortrait image={Characters.getImageDir(character.image_id)} size={60} />
 
                     <View style={{ flex: 1, paddingLeft: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <Text style={styles.nametag} numberOfLines={2}>
-                                {character.name}
-                            </Text>
+                            <View
+                                style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                }}>
+                                <Text style={styles.nametag} numberOfLines={1}>
+                                    {character.name}
+                                </Text>
+                            </View>
                             <Text style={styles.timestamp}>
                                 {getFriendlyTimeStamp(character.last_modified)}
                             </Text>
@@ -81,52 +86,48 @@ const CharacterListing: React.FC<CharacterListingProps> = ({
 export default CharacterListing
 
 const useStyles = () => {
-    const { color, spacing, borderRadius, borderWidth, fontSize } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     return StyleSheet.create({
         longButtonContainer: {
             flexDirection: 'row',
-            backgroundColor: color.neutral._200,
-            borderColor: color.neutral._400,
-            borderWidth: borderWidth.s,
-            borderRadius: borderRadius.l,
+            backgroundColor: 'transparent',
+            borderColor: tokens.border.default,
+            borderWidth: 0,
+            borderRadius: tokens.radius.container,
             flex: 1,
-            paddingVertical: spacing.l,
-            paddingHorizontal: spacing.l,
-            boxShadow: [
-                {
-                    offsetX: 0,
-                    offsetY: 4,
-                    blurRadius: 16,
-                    color: color.shadow + '0D',
-                },
-            ],
+            paddingVertical: 12,
+            paddingHorizontal: 4,
+            alignItems: 'center',
         },
 
         avatar: {
             width: 48,
             height: 48,
-            borderRadius: borderRadius.l,
-            backgroundColor: color.neutral._300,
-            borderColor: color.neutral._400,
+            borderRadius: tokens.radius.element,
+            backgroundColor: tokens.background.muted,
+            borderColor: tokens.border.default,
             borderWidth: 1,
         },
 
         nametag: {
             flex: 1,
-            fontSize: fontSize.l,
+            fontSize: 17,
             fontWeight: '600',
-            color: color.text._100,
+            color: tokens.text.primary,
         },
 
         timestamp: {
-            fontSize: fontSize.s,
-            color: color.text._500,
+            fontSize: 13,
+            marginLeft: 8,
+            color: tokens.text.muted,
         },
 
         previewText: {
-            marginTop: spacing.s,
-            color: color.text._400,
+            marginTop: 4,
+            fontSize: 15,
+            lineHeight: 20,
+            color: tokens.text.secondary,
         },
     })
 }

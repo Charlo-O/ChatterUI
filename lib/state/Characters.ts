@@ -4,6 +4,7 @@ import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { Asset } from 'expo-asset'
 import * as DocumentPicker from 'expo-document-picker'
 import { useEffect } from 'react'
+import { Platform } from 'react-native'
 import { z } from 'zod'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -749,6 +750,10 @@ export namespace Characters {
 
     export const importBackground = async (charId: number, oldBackground?: number | null) => {
         try {
+            if (Platform.OS === 'web') {
+                Logger.warnToast('Background import is available on native builds')
+                return
+            }
             const result = await DocumentPicker.getDocumentAsync({
                 copyToCacheDirectory: true,
                 type: ['image/*', 'application/json'],

@@ -2,12 +2,12 @@ import { FontAwesome } from '@expo/vector-icons'
 import React from 'react'
 import { Linking } from 'react-native'
 
-import { Theme } from '@lib/theme/ThemeManager'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 
 import ThemedButton from './ThemedButton'
 
 const SupportButton = () => {
-    const theme = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     return (
         <ThemedButton
@@ -16,7 +16,8 @@ const SupportButton = () => {
             }}
             variant="secondary"
             label="Support ChatterUI"
-            icon={<FontAwesome name="coffee" size={16} color={theme.color.primary._700} />}
+            accessibilityHint="Open the ChatterUI support page"
+            icon={<FontAwesome name="coffee" size={16} color={tokens.text.primary} />}
         />
     )
 }

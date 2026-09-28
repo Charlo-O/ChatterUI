@@ -1,8 +1,9 @@
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, StyleSheet, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
 
 import FadeBackrop from '@components/views/FadeBackdrop'
+import { AstryxButton, useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 import { useI18n } from '@lib/i18n'
 import { AlertButtonProps, AlertProps, useAlertStore } from '@lib/state/components/Alert'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -16,21 +17,18 @@ namespace Alert {
 export default Alert
 
 const AlertButton: React.FC<AlertButtonProps> = ({ label, onPress, type = 'default' }) => {
-    const styles = useStyles()
     const { t } = useI18n()
-    const buttonStyleMap = {
-        warning: styles.buttonWarning,
-        default: styles.button,
-    }
-
+    const isDismissAction = /^(cancel|no|close)$/i.test(label.trim())
     return (
-        <TouchableOpacity
+        <AstryxButton
+            label={t(label)}
+            variant={type === 'warning' ? 'destructive' : isDismissAction ? 'ghost' : 'primary'}
+            accessibilityLabel={t(label)}
             onPress={async () => {
                 useAlertStore.getState().hide()
                 onPress && onPress()
-            }}>
-            <Text style={buttonStyleMap[type]}>{t(label)}</Text>
-        </TouchableOpacity>
+            }}
+        />
     )
 }
 
@@ -59,7 +57,7 @@ export const AlertProvider = () => {
             navigationBarTranslucent
             onRequestClose={handleDismiss}>
             <FadeBackrop handleOverlayClick={handleDismiss} />
-            <Animated.View style={styles.textBoxContainer} entering={FadeInDown.duration(150)}>
+            <Animated.View style={styles.textBoxContainer} entering={FadeInDown.duration(150)} accessibilityViewIsModal>
                 <View style={styles.textBox}>
                     <Text style={styles.title}>{t(props.title)}</Text>
                     <Text style={styles.description}>{t(props.description)}</Text>
@@ -75,7 +73,8 @@ export const AlertProvider = () => {
 }
 
 const useStyles = () => {
-    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
+    const { spacing, fontSize } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     return StyleSheet.create({
         modal: {
@@ -88,33 +87,33 @@ const useStyles = () => {
         },
 
         textBox: {
-            backgroundColor: color.neutral._200,
-            borderColor: color.neutral._400,
+            backgroundColor: tokens.background.popover,
+            borderColor: tokens.border.default,
             borderWidth: 1,
             paddingHorizontal: spacing.xl2,
             paddingBottom: spacing.xl,
             paddingTop: spacing.xl2,
-            borderRadius: borderRadius.xl2,
+            borderRadius: tokens.radius.container,
             width: '88%',
             boxShadow: [
                 {
                     offsetX: 0,
                     offsetY: 12,
                     blurRadius: 32,
-                    color: color.shadow + '24',
+                    color: tokens.shadow.med,
                 },
             ],
         },
 
         title: {
-            color: color.text._100,
+            color: tokens.text.primary,
             fontSize: fontSize.xl,
             fontWeight: '600',
             marginBottom: spacing.l,
         },
 
         description: {
-            color: color.text._300,
+            color: tokens.text.secondary,
             marginBottom: spacing.l,
             fontSize: fontSize.m,
             lineHeight: 21,
@@ -127,16 +126,5 @@ const useStyles = () => {
             alignItems: 'center',
         },
 
-        button: {
-            paddingHorizontal: spacing.s,
-            paddingVertical: spacing.m,
-            color: color.text._400,
-        },
-
-        buttonWarning: {
-            paddingHorizontal: spacing.s,
-            paddingVertical: spacing.m,
-            color: color.error._300,
-        },
     })
 }

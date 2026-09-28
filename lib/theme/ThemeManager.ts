@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { useColorScheme } from 'react-native'
+import { useMemo, useSyncExternalStore } from 'react'
+import { Appearance } from 'react-native'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
@@ -8,7 +8,211 @@ import { Storage } from '@lib/enums/Storage'
 import { Logger } from '@lib/state/Logger'
 import { createMMKVStorage } from '@lib/storage/MMKV'
 
+import { createLiquidGlassTheme } from './LiquidGlassTheme'
 import { DefaultColorSchemes, ThemeColor, themeColorSchemaV1 } from './ThemeColor'
+
+// RN Web's useColorScheme re-subscribes after every render and can miss an
+// appearance change during a simultaneous viewport update. A stable external
+// store subscription also rechecks the snapshot after committing each screen.
+const subscribeAppearance = (onChange: () => void) => {
+    const subscription = Appearance.addChangeListener(onChange)
+    return () => subscription.remove()
+}
+const getServerAppearance = () => 'light' as const
+
+/**
+ * Semantic compatibility tokens used throughout the app.
+ *
+ * The legacy `ThemeColor` object remains the source of truth for the existing
+ * screens and is intentionally kept unchanged.  These tokens are an adapter
+ * layer: consumers can opt into semantic names without having to know about
+ * the `_100` … `_900` colour ramps used by the persisted theme format.
+ */
+export interface AstryxSemanticTokens {
+    dark: boolean
+    background: {
+        body: string
+        surface: string
+        card: string
+        muted: string
+        popover: string
+    }
+    text: {
+        primary: string
+        secondary: string
+        muted: string
+        disabled: string
+    }
+    accent: {
+        primary: string
+        onPrimary: string
+        muted: string
+    }
+    brand: {
+        primary: string
+        onPrimary: string
+    }
+    border: {
+        default: string
+        emphasized: string
+        focus: string
+    }
+    status: {
+        success: string
+        warning: string
+        error: string
+    }
+    radius: {
+        none: number
+        inner: number
+        element: number
+        container: number
+        page: number
+        chat: number
+        full: number
+    }
+    /** Astryx spacing scale (CSS spacing-0 … spacing-12, in dp on native). */
+    spacing: {
+        zero: number
+        hairline: number
+        xs: number
+        sm: number
+        md: number
+        lg: number
+        xl: number
+        xxl: number
+        xxxl: number
+        /** Numeric aliases make porting web examples straightforward. */
+        [key: string]: number
+    }
+    size: {
+        sm: number
+        md: number
+        lg: number
+    }
+    /** Shadow colours are represented as RN-compatible colours, not CSS box shadows. */
+    shadow: {
+        low: string
+        med: string
+        high: string
+    }
+    font: {
+        body: string
+        heading: string
+        code: string
+    }
+}
+
+const ASTRYX_RADIUS: AstryxSemanticTokens['radius'] = {
+    none: 0,
+    inner: 16,
+    element: 22,
+    container: 28,
+    page: 40,
+    chat: 26,
+    full: 9999,
+}
+
+const ASTRYX_SPACING: AstryxSemanticTokens['spacing'] = {
+    zero: 0,
+    none: 0,
+    hairline: 2,
+    xs: 4,
+    s: 6,
+    sm: 8,
+    m: 10,
+    md: 12,
+    l: 12,
+    lg: 16,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
+    '2xl': 24,
+    '3xl': 32,
+    '0': 0,
+    '0.5': 2,
+    '1': 4,
+    '1.5': 6,
+    '2': 8,
+    '3': 12,
+    '4': 16,
+    '5': 20,
+    '6': 24,
+    '7': 28,
+    '8': 32,
+    '9': 36,
+    '10': 40,
+    '11': 44,
+    '12': 48,
+}
+
+const ASTRYX_SIZE: AstryxSemanticTokens['size'] = { sm: 44, md: 44, lg: 48 }
+
+const ASTRYX_FONT: AstryxSemanticTokens['font'] = {
+    body: 'system',
+    heading: 'system',
+    code: 'monospace',
+}
+
+const createAstryxTokens = (dark: boolean): AstryxSemanticTokens => {
+    const glass = createLiquidGlassTheme(dark)
+    return {
+        dark,
+        background: {
+            body: glass.background,
+            surface: glass.surface,
+            card: glass.surface,
+            muted: glass.inset,
+            popover: glass.surface,
+        },
+        text: {
+            primary: glass.label,
+            secondary: glass.secondary,
+            muted: glass.muted,
+            disabled: glass.disabled,
+        },
+        accent: { primary: glass.outgoing, onPrimary: glass.outgoingText, muted: glass.chip },
+        brand: { primary: glass.accent, onPrimary: '#FFFFFF' },
+        border: {
+            default: glass.hairline,
+            emphasized: dark ? '#48484E' : '#D4D4DA',
+            focus: glass.accent,
+        },
+        status: {
+            success: dark ? '#5CD685' : '#258342',
+            warning: dark ? '#E9BA57' : '#916705',
+            error: dark ? '#FF938C' : '#C63D38',
+        },
+        radius: ASTRYX_RADIUS,
+        spacing: ASTRYX_SPACING,
+        size: ASTRYX_SIZE,
+        shadow: {
+            low: dark ? '#00000040' : '#0000001A',
+            med: dark ? '#00000059' : '#00000026',
+            high: dark ? '#000000B3' : '#0000003D',
+        },
+        font: ASTRYX_FONT,
+    }
+}
+
+/** Best-effort luminance check for custom persisted schemes. */
+const isDarkThemeColor = (themeColor: ThemeColor): boolean => {
+    const hex = themeColor.neutral?._100
+    if (!hex) return false
+    const compact = hex.replace('#', '')
+    const normalized =
+        compact.length === 3
+            ? compact
+                  .split('')
+                  .map((digit) => `${digit}${digit}`)
+                  .join('')
+            : compact
+    if (normalized.length !== 6) return false
+    const [r, g, b] = [0, 2, 4].map((offset) =>
+        Number.parseInt(normalized.slice(offset, offset + 2), 16)
+    )
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 120
+}
 
 interface ColorStateProps {
     useSystemDarkMode: boolean
@@ -174,7 +378,11 @@ export namespace Theme {
     const font = ''
 
     export const useTheme = () => {
-        const systemTheme = useColorScheme()
+        const systemTheme = useSyncExternalStore(
+            subscribeAppearance,
+            Appearance.getColorScheme,
+            getServerAppearance
+        )
         const { selectedColor, useSystemDarkMode, lightColor, darkColor } = useColorState(
             useShallow((state) => ({
                 selectedColor: state.color,
@@ -190,9 +398,23 @@ export namespace Theme {
                 : lightColor
             : selectedColor
 
+        // Fable's neutral palette follows the active appearance. We
+        // intentionally keep this separate from `color`: persisted/custom
+        // ThemeColor schemes continue to drive all legacy consumers exactly as
+        // before, while migrated consumers get stable semantic names.
+        const astryx = useMemo(
+            () =>
+                createAstryxTokens(
+                    useSystemDarkMode ? systemTheme === 'dark' : isDarkThemeColor(selectedColor)
+                ),
+            [selectedColor, systemTheme, useSystemDarkMode]
+        )
+
+        const glass = useMemo(() => createLiquidGlassTheme(astryx.dark), [astryx.dark])
+
         return useMemo(
-            () => ({ color, spacing, font, borderWidth, fontSize, borderRadius }),
-            [color]
+            () => ({ color, spacing, font, borderWidth, fontSize, borderRadius, astryx, glass }),
+            [color, astryx, glass]
         )
     }
 }

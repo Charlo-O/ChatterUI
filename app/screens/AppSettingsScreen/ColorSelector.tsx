@@ -7,10 +7,9 @@ import { useShallow } from 'zustand/react/shallow'
 
 import ThemedButton from '@components/buttons/ThemedButton'
 import ThemedSwitch from '@components/input/ThemedSwitch'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import Alert from '@components/views/Alert'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import InputSheet from '@components/views/InputSheet'
 import { Logger } from '@lib/state/Logger'
 import { DefaultColorSchemes, ThemeColor } from '@lib/theme/ThemeColor'
@@ -125,6 +124,7 @@ const ColorThemeItem: React.FC<ColorThemeItemProps> = ({ item, index, showDelete
                 </View>
                 {showDelete ? (
                     <ThemedButton
+                        accessibilityLabel="Delete custom theme"
                         iconStyle={{ color: item.error._500 }}
                         variant="tertiary"
                         iconSize={20}
@@ -210,52 +210,50 @@ const ColorSelector = () => {
 
     const [showPaste, setShowPaste] = useState(false)
 
+    const actions = (
+        <ContextMenu
+            triggerAccessibilityLabel="Theme actions"
+            triggerIcon="setting"
+            placement="bottom"
+            buttons={[
+                {
+                    label: 'Import Theme',
+                    icon: 'download',
+                    onPress: (close) => {
+                        pickJSONDocument().then((result) => {
+                            if (!result.success) return
+                            addCustomColor(result.data)
+                        })
+                        close()
+                    },
+                },
+                {
+                    label: 'Paste Theme',
+                    icon: 'file',
+                    onPress: (close) => {
+                        close()
+                        setShowPaste(true)
+                    },
+                },
+                {
+                    label: 'Get Themes',
+                    icon: 'github',
+                    onPress: (close) => {
+                        close()
+                        Linking.openURL('https://github.com/Vali-98/ChatterUI/discussions/218')
+                    },
+                },
+            ]}
+        />
+    )
+
     return (
-        <SafeAreaView edges={['bottom']} style={{ paddingHorizontal: 16, rowGap: 16, flex: 1 }}>
-            <HeaderTitle title="Themes" />
+        <AstryxScreen title="Themes" subtitle="Color and appearance" actions={actions}>
+            <SafeAreaView edges={['bottom']} style={{ paddingHorizontal: 16, rowGap: 16, flex: 1 }}>
             <ThemedSwitch
                 value={systemDark}
                 onChangeValue={setSystemDark}
                 label="Use System Dark Mode"
-            />
-            <HeaderButton
-                headerRight={() => (
-                    <ContextMenu
-                        triggerIcon="setting"
-                        placement="bottom"
-                        buttons={[
-                            {
-                                label: 'Import Theme',
-                                icon: 'download',
-                                onPress: (close) => {
-                                    pickJSONDocument().then((result) => {
-                                        if (!result.success) return
-                                        addCustomColor(result.data)
-                                    })
-                                    close()
-                                },
-                            },
-                            {
-                                label: 'Paste Theme',
-                                icon: 'file',
-                                onPress: (close) => {
-                                    close()
-                                    setShowPaste(true)
-                                },
-                            },
-                            {
-                                label: 'Get Themes',
-                                icon: 'github',
-                                onPress: (close) => {
-                                    close()
-                                    Linking.openURL(
-                                        'https://github.com/Vali-98/ChatterUI/discussions/218'
-                                    )
-                                },
-                            },
-                        ]}
-                    />
-                )}
             />
             <InputSheet
                 visible={showPaste}
@@ -285,7 +283,8 @@ const ColorSelector = () => {
                     />
                 )}
             />
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

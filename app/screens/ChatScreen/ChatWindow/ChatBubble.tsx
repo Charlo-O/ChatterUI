@@ -1,7 +1,8 @@
-import { Pressable, Text, View } from 'react-native'
+import { Platform, Pressable, Text, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 import { useShallow } from 'zustand/react/shallow'
 
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 import { AppSettings } from '@lib/constants/GlobalValues'
 import { useAppMode } from '@lib/state/AppMode'
 import { Chats } from '@lib/state/Chat'
@@ -30,7 +31,8 @@ const ChatBubble: React.FC<ChatTextProps> = ({
     const message = Chats.useEntryData(index)
     const { appMode } = useAppMode()
     const [showTPS] = useMMKVBoolean(AppSettings.ShowTokenPerSecond)
-    const { color, spacing, borderRadius, fontSize } = Theme.useTheme()
+    const { glass, fontSize } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     const { setShowOptions } = useChatActionsState(
         useShallow((state) => ({
@@ -50,28 +52,30 @@ const ChatBubble: React.FC<ChatTextProps> = ({
     return (
         <View>
             <Pressable
+                role={Platform.OS === 'web' ? 'group' : 'button'}
+                accessibilityLabel={`${message.name} message`}
+                accessibilityHint="Press Enter for message actions, or long press to edit"
                 onPress={() => {
                     setShowOptions(nowGenerating ? undefined : index)
                 }}
-                style={{
-                    backgroundColor: message.is_user ? color.primary._500 : color.neutral._200,
-                    borderColor: message.is_user ? color.primary._500 : color.neutral._400,
-                    borderWidth: 1,
+                style={({ pressed }) => ({
+                    backgroundColor: message.is_user ? glass.outgoing : glass.surface,
+                    borderWidth: 0,
                     marginBottom: showSwipe ? 0 : 4,
-                    paddingVertical: spacing.m,
-                    paddingHorizontal: spacing.l,
+                    paddingVertical: 10,
+                    paddingHorizontal: 18,
                     minHeight: 44,
-                    borderRadius: borderRadius.xl,
-                    shadowColor: color.shadow,
+                    borderRadius: tokens.radius.chat,
+                    opacity: pressed ? 0.86 : 1,
                     boxShadow: [
                         {
                             offsetX: 0,
-                            offsetY: 3,
-                            color: color.shadow + '10',
-                            blurRadius: 12,
+                            offsetY: 8,
+                            color: message.is_user ? 'transparent' : glass.shadow + '08',
+                            blurRadius: 24,
                         },
                     ],
-                }}
+                })}
                 onLongPress={handleEnableEdit}>
                 {isLastMessage ? (
                     <ChatTextLast nowGenerating={nowGenerating} index={index} />
@@ -86,7 +90,7 @@ const ChatBubble: React.FC<ChatTextProps> = ({
                     {showTPS && appMode === 'local' && timings && (
                         <Text
                             style={{
-                                color: color.text._500,
+                                color: message.is_user ? glass.outgoingText : glass.secondary,
                                 fontWeight: '300',
                                 textAlign: 'right',
                                 fontSize: fontSize.s,
@@ -95,14 +99,13 @@ const ChatBubble: React.FC<ChatTextProps> = ({
                             {`   Text Gen: ${getFiniteValue(timings.predicted_per_second)} t/s`}
                         </Text>
                     )}
-
-                    <ChatQuickActions
-                        nowGenerating={nowGenerating}
-                        isLastMessage={isLastMessage}
-                        index={index}
-                    />
                 </View>
             </Pressable>
+            <ChatQuickActions
+                nowGenerating={nowGenerating}
+                isLastMessage={isLastMessage}
+                index={index}
+            />
             {showSwipe && (
                 <ChatSwipes index={index} nowGenerating={nowGenerating} isGreeting={isGreeting} />
             )}

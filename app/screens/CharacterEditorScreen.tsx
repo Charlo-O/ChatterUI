@@ -4,7 +4,7 @@ import { count, eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import * as DocumentPicker from 'expo-document-picker'
 import { ImageBackground } from 'expo-image'
-import { Redirect, useNavigation } from 'expo-router'
+import { Redirect, useNavigation, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
@@ -12,13 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
 import ThemedButton from '@components/buttons/ThemedButton'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import StringArrayEditor from '@components/input/StringArrayEditor'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import Alert from '@components/views/Alert'
 import Avatar from '@components/views/Avatar'
 import AvatarViewer from '@components/views/AvatarViewer'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderTitle from '@components/views/HeaderTitle'
 import { db } from '@db'
 import { useDebounceTokenizer } from '@lib/hooks/Tokenizer'
 import { CharacterCardData, Characters } from '@lib/state/Characters'
@@ -32,6 +32,7 @@ const ChracterEditorScreen = () => {
     const styles = useStyles()
     const { color, spacing } = Theme.useTheme()
     const navigation = useNavigation()
+    const router = useRouter()
     const data = useLiveQuery(
         db
             .select({
@@ -93,6 +94,11 @@ const ChracterEditorScreen = () => {
             ],
         })
     })
+
+    const handleBack = () => {
+        if (navigation.canGoBack()) navigation.goBack()
+        else router.replace('/')
+    }
 
     const handleExportCard = () => {
         try {
@@ -223,15 +229,22 @@ const ChracterEditorScreen = () => {
     }
 
     if (!charId) return <Redirect href=".." />
+    const backgroundUri = backgroundImage ? Characters.getImageDir(backgroundImage) : undefined
     return (
-        <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <AstryxScreen
+            title="Edit Character"
+            subtitle={charName || 'Character profile'}
+            showMenu={false}
+            onBack={handleBack}>
+            <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
             <ImageBackground
                 cachePolicy="none"
                 style={styles.mainContainer}
-                source={{
-                    uri: backgroundImage ? Characters.getImageDir(backgroundImage) : '',
-                }}>
-                <HeaderTitle title="Edit Character" />
+                source={
+                    backgroundUri && !backgroundUri.startsWith('web://')
+                        ? { uri: backgroundUri }
+                        : undefined
+                }>
                 <AvatarViewer editorButton={false} />
 
                 {characterCard && (
@@ -242,6 +255,7 @@ const ChracterEditorScreen = () => {
                         contentContainerStyle={{ rowGap: 8, paddingBottom: 24 }}>
                         <View style={styles.characterHeader}>
                             <ContextMenu
+                                triggerAccessibilityLabel="Character image actions"
                                 placement="right"
                                 buttons={[
                                     {
@@ -560,7 +574,8 @@ const ChracterEditorScreen = () => {
                     </KeyboardAwareScrollView>
                 )}
             </ImageBackground>
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

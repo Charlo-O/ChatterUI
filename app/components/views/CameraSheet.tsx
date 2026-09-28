@@ -34,7 +34,11 @@ const CameraSheet: React.FC<CameraSheetProps> = ({ visible, setVisible, onTakePi
                 mode="picture"
                 style={{ flex: 1, borderRadius: 8, marginBottom: 24 }}
             />
-            <ThemedButton iconName="camera" onPress={handleTakePicture} />
+            <ThemedButton
+                accessibilityLabel="Take picture"
+                iconName="camera"
+                onPress={handleTakePicture}
+            />
         </BottomSheet>
     )
 }

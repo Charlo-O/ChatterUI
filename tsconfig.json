@@ -13,6 +13,7 @@
         },
         "allowJs": true
     },
+    "exclude": ["node_modules", "extra", ".qa"],
     "include": [
         "**/*.ts",
         "**/*.tsx",

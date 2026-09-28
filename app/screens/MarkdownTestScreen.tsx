@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native'
 import Markdown from 'react-native-markdown-display'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import HeaderTitle from '@components/views/HeaderTitle'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { MarkdownStyle } from '@lib/markdown/Markdown'
 
 const markdownData = `
@@ -130,8 +130,8 @@ const MarkdownTestScreen = () => {
     const markdownStyle = MarkdownStyle.useMarkdownStyle()
 
     return (
-        <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-            <HeaderTitle title="Markdown Test" />
+        <AstryxScreen title="Markdown Test" subtitle="Renderer preview">
+            <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
             <ScrollView contentContainerStyle={{ padding: 16, flexGrow: 1 }} style={{ flex: 1 }}>
                 <View style={{ flex: 1 }}>
                     <Markdown
@@ -143,7 +143,8 @@ const MarkdownTestScreen = () => {
                     </Markdown>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

@@ -1,7 +1,7 @@
 import { AntDesign } from '@expo/vector-icons'
 import { randomUUID } from 'expo-crypto'
 import { useFocusEffect } from 'expo-router'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import {
     BackHandler,
     Dimensions,
@@ -10,10 +10,12 @@ import {
     LayoutRectangle,
     Pressable,
     StyleSheet,
+    StyleProp,
     TextStyle,
-    TouchableOpacity,
     View,
     ViewProps,
+    ViewStyle,
+    AccessibilityState,
 } from 'react-native'
 import Animated, {
     LinearTransition,
@@ -61,6 +63,9 @@ export interface ContextMenuProps extends ViewProps {
     onLongPress?: () => void
     delayLongPress?: number
     longPress?: boolean
+    trigger?: ReactNode
+    /** Accessible name for an icon-only default/custom trigger. */
+    triggerAccessibilityLabel?: string
 }
 
 const CONTEXT_MENU_MIN_WIDTH = 128
@@ -78,6 +83,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     onLongPress,
     delayLongPress,
     longPress,
+    trigger,
+    triggerAccessibilityLabel,
 }) => {
     const [idRef] = useState(() => `context-menu-${randomUUID()}`)
     const triggerRef = useRef<View>(null)
@@ -92,9 +99,20 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     )
 
     const [anchor, setAnchor] = useState<LayoutRectangle | null>(null)
+    const setTriggerRef = useCallback((node: View | null) => {
+        triggerRef.current = node
+    }, [])
 
     const handleOpen = (event: GestureResponderEvent) => {
         const ne = event.nativeEvent
+
+        if (!Number.isFinite(ne.pageX) || !Number.isFinite(ne.pageY) || (ne.pageX === 0 && ne.pageY === 0)) {
+            triggerRef.current?.measureInWindow((x, y, width, height) => {
+                setAnchor({ x: x + width / 2, y: y + height / 2, width: 0, height: 0 })
+                openMenu(idRef)
+            })
+            return
+        }
 
         setAnchor({
             x: ne.pageX,
@@ -124,32 +142,88 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         }, [handleCloseMenu, isOpen])
     )
 
+    type TriggerProps = {
+        label?: string
+        accessibilityRole?: 'button' | string
+        accessibilityLabel?: string
+        accessibilityState?: AccessibilityState
+        ref?: React.Ref<View>
+        disabled?: boolean
+        onPressIn?: (event: GestureResponderEvent) => void
+        onPress?: (event: GestureResponderEvent) => void
+        onLongPress?: (event: GestureResponderEvent) => void
+        delayLongPress?: number
+        style?: StyleProp<ViewStyle>
+    }
+    const triggerElement = React.isValidElement<TriggerProps>(trigger) ? trigger : null
+    const wrappedTrigger = triggerElement
+        ? (
+              <View ref={setTriggerRef} collapsable={false}>
+                  {/* The trigger is cloned to preserve its visual component while adding menu handlers. */}
+                  {/* eslint-disable-next-line react-compiler/react-compiler */}
+                  {React.cloneElement(triggerElement, {
+                      accessibilityRole: 'button',
+                      accessibilityLabel:
+                          triggerAccessibilityLabel ??
+                          triggerElement.props.accessibilityLabel ??
+                          triggerElement.props.label ??
+                          'Open menu',
+                      accessibilityState: {
+                          ...(triggerElement.props.accessibilityState ?? {}),
+                          expanded: isOpen,
+                          disabled,
+                      },
+                      disabled: disabled ?? triggerElement.props.disabled,
+                      onPressIn: (event: GestureResponderEvent) => {
+                          triggerElement.props.onPressIn?.(event)
+                          if (!longPress) handleOpen(event)
+                      },
+                      onPress: (event: GestureResponderEvent) => {
+                          triggerElement.props.onPress?.(event)
+                          onPress?.()
+                      },
+                      delayLongPress: delayLongPress ?? 300,
+                      onLongPress: (event: GestureResponderEvent) => {
+                          triggerElement.props.onLongPress?.(event)
+                          onLongPress?.()
+                          if (longPress) handleOpen(event)
+                      },
+                      style: [triggerElement.props.style, { opacity: isOpen ? 0.5 : 1 }],
+                  })}
+              </View>
+          )
+        : null
+
     return (
         <>
-            <TouchableOpacity
-                activeOpacity={0.5}
-                style={{ opacity: isOpen ? 0.5 : 1 }}
-                ref={triggerRef}
-                onPressIn={(event) => {
-                    if (longPress) return
-                    handleOpen(event)
-                }}
-                onPress={() => onPress?.()}
-                delayLongPress={delayLongPress ?? 300}
-                onLongPress={(event) => {
-                    onLongPress?.()
-                    if (!longPress) return
-                    handleOpen(event)
-                }}
-                disabled={disabled}>
-                {children || (
-                    <AntDesign
-                        size={triggerIconSize}
-                        style={[styles.menuText, triggerStyle]}
-                        name={triggerIcon}
-                    />
-                )}
-            </TouchableOpacity>
+            {wrappedTrigger ?? (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={triggerAccessibilityLabel ?? 'Open menu'}
+                    accessibilityState={{ expanded: isOpen, disabled }}
+                    style={({ pressed }) => ({ opacity: isOpen ? 0.5 : pressed ? 0.72 : 1 })}
+                    ref={setTriggerRef}
+                    onPressIn={(event) => {
+                        if (longPress) return
+                        handleOpen(event)
+                    }}
+                    onPress={() => onPress?.()}
+                    delayLongPress={delayLongPress ?? 300}
+                    onLongPress={(event) => {
+                        onLongPress?.()
+                        if (!longPress) return
+                        handleOpen(event)
+                    }}
+                    disabled={disabled}>
+                    {children || (
+                        <AntDesign
+                            size={triggerIconSize}
+                            style={[styles.menuText, triggerStyle]}
+                            name={triggerIcon}
+                        />
+                    )}
+                </Pressable>
+            )}
 
             {isOpen && anchor && (
                 <Portal name={idRef}>
@@ -323,6 +397,9 @@ const MenuList = ({
                     return (
                         <Animated.View key={key} layout={LinearTransition}>
                             <Pressable
+                                accessibilityRole="menuitem"
+                                accessibilityState={{ disabled: item.disabled }}
+                                accessibilityLabel={item.label}
                                 style={styles.menuItem}
                                 onPress={() => {
                                     if (hasSubmenu) {
@@ -372,26 +449,26 @@ const MenuList = ({
 }
 
 const useStyles = () => {
-    const { color, borderRadius } = Theme.useTheme()
+    const { astryx } = Theme.useTheme()
     return StyleSheet.create({
         menuContainer: {
             position: 'absolute',
-            borderRadius: borderRadius.l,
+            borderRadius: astryx.radius.element,
         },
         menu: {
-            backgroundColor: color.neutral._200,
+            backgroundColor: astryx.background.popover,
             minWidth: CONTEXT_MENU_MIN_WIDTH,
-            borderColor: color.neutral._400,
+            borderColor: astryx.border.default,
             borderWidth: 1,
             padding: 6,
-            borderRadius: borderRadius.l,
+            borderRadius: astryx.radius.element,
             overflow: 'hidden',
             boxShadow: [
                 {
                     offsetX: 0,
                     offsetY: 8,
                     blurRadius: 24,
-                    color: color.shadow + '20',
+                    color: astryx.shadow.med,
                 },
             ],
         },
@@ -403,13 +480,13 @@ const useStyles = () => {
             flexDirection: 'row',
             alignItems: 'center',
             columnGap: 12,
-            borderRadius: borderRadius.m,
+            borderRadius: astryx.radius.inner,
         },
         menuText: {
-            color: color.text._300,
+            color: astryx.text.primary,
         },
         menuTextError: {
-            color: color.error._300,
+            color: astryx.status.error,
         },
     })
 }

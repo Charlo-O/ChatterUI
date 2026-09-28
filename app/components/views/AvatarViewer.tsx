@@ -1,15 +1,16 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Image, Modal, StyleSheet, Text, View } from 'react-native'
+import { Image, Modal, Platform, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useShallow } from 'zustand/react/shallow'
 
 import ThemedButton from '@components/buttons/ThemedButton'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
+import TText from '@components/text/TText'
 import Avatar from '@components/views/Avatar'
 import FadeBackrop from '@components/views/FadeBackdrop'
 import { Characters } from '@lib/state/Characters'
 import { useAvatarViewerStore } from '@lib/state/components/AvatarViewer'
-import { Theme } from '@lib/theme/ThemeManager'
 
 type AvatarViewerProps = {
     editorButton?: boolean
@@ -48,8 +49,13 @@ const AvatarViewer: React.FC<AvatarViewerProps> = ({ editorButton = true }) => {
     const name = isUser ? userName : charName
 
     useEffect(() => {
+        const imageURI = Characters.getImageDir(imageId ?? -1)
+        if (Platform.OS === 'web' && imageURI.startsWith('web://')) {
+            setAspectRatio(1)
+            return
+        }
         Image.getSize(
-            Characters.getImageDir(imageId ?? -1),
+            imageURI,
             (width, height) => {
                 setAspectRatio(width / height)
             },
@@ -70,20 +76,25 @@ const AvatarViewer: React.FC<AvatarViewerProps> = ({ editorButton = true }) => {
             onRequestClose={() => setShow(false)}>
             <FadeBackrop handleOverlayClick={() => setShow(false)} />
             <View style={styles.mainContainer}>
-                <Animated.View style={styles.bodyContainer} entering={FadeInDown}>
+                <Animated.View
+                    accessible
+                    accessibilityViewIsModal
+                    accessibilityLabel={name ?? 'Avatar preview'}
+                    style={styles.bodyContainer}
+                    entering={FadeInDown}>
                     <Avatar
                         contentFit="cover"
                         targetImage={Characters.getImageDir(imageId ?? -1)}
                         style={[styles.avatar, { aspectRatio: aspectRatio }]}
                     />
-                    <Text style={styles.name}>{name}</Text>
+                    <TText style={styles.name}>{name}</TText>
                     <View style={styles.buttonContainer}>
                         {editorButton && (
                             <ThemedButton
                                 label="Edit Character"
                                 iconName="edit"
                                 iconSize={18}
-                                variant="secondary"
+                                variant="primary"
                                 onPress={() => {
                                     router.push(
                                         isUser
@@ -99,7 +110,7 @@ const AvatarViewer: React.FC<AvatarViewerProps> = ({ editorButton = true }) => {
                             label="Close"
                             iconName="close"
                             iconSize={18}
-                            variant="secondary"
+                            variant="ghost"
                             onPress={() => {
                                 setShow(false)
                             }}
@@ -114,7 +125,7 @@ const AvatarViewer: React.FC<AvatarViewerProps> = ({ editorButton = true }) => {
 export default AvatarViewer
 
 const useStyles = () => {
-    const { color, spacing, borderWidth, borderRadius, fontSize } = Theme.useTheme()
+    const tokens = useAstryxTokens()
     return StyleSheet.create({
         modal: {
             flex: 1,
@@ -127,35 +138,37 @@ const useStyles = () => {
         },
 
         bodyContainer: {
-            shadowColor: color.shadow,
+            shadowColor: tokens.shadow.high,
             elevation: 10,
-            paddingTop: spacing.xl2,
-            paddingBottom: spacing.xl,
-            paddingHorizontal: spacing.xl2,
-            backgroundColor: color.neutral._100,
-            borderRadius: borderRadius.xl,
+            paddingTop: tokens.spacing.xxl,
+            paddingBottom: tokens.spacing.xl,
+            paddingHorizontal: tokens.spacing.xxl,
+            backgroundColor: tokens.background.surface,
+            borderColor: tokens.border.default,
+            borderWidth: 1,
+            borderRadius: tokens.radius.container,
             alignItems: 'center',
         },
 
         avatar: {
             height: undefined,
             width: '70%',
-            borderRadius: spacing.xl,
-            borderWidth: borderWidth.m,
-            borderColor: color.primary._300,
+            borderRadius: tokens.radius.element,
+            borderWidth: 2,
+            borderColor: tokens.brand.primary,
         },
 
         name: {
-            marginTop: spacing.l,
-            fontSize: fontSize.xl,
+            marginTop: tokens.spacing.md,
+            fontSize: 20,
             fontWeight: '500',
-            color: color.text._100,
+            color: tokens.text.primary,
         },
 
         buttonContainer: {
-            marginTop: spacing.xl,
+            marginTop: tokens.spacing.xl,
             flexDirection: 'row',
-            columnGap: spacing.l,
+            columnGap: tokens.spacing.md,
         },
     })
 }

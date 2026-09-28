@@ -8,6 +8,13 @@ const config = getDefaultConfig(__dirname)
 config.resolver.sourceExts.push('sql')
 config.resolver.assetExts.push('gguf', 'raw', 'wasm')
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+    if (platform === 'web' && moduleName === 'react-native-background-actions') {
+        return {
+            type: 'sourceFile',
+            filePath: path.resolve(__dirname, 'lib/utils/BackgroundActions.web.ts'),
+        }
+    }
+
     if (platform === 'web' && moduleName === '@vali98/react-native-process-text') {
         return {
             type: 'sourceFile',

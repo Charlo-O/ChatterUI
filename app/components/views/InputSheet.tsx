@@ -5,7 +5,7 @@ import { View } from 'react-native'
 import ThemedButton from '@components/buttons/ThemedButton'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import TText from '@components/text/TText'
-import { Theme } from '@lib/theme/ThemeManager'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 
 import BottomSheet from './BottomSheet'
 
@@ -39,7 +39,7 @@ const InputSheet: React.FC<InputSheetProps> = ({
 }) => {
     const [text, setText] = useState(defaultValue)
     const [errorMessage, setErrorMessage] = useState('')
-    const { color, fontSize, spacing } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     const handleClose = () => {
         setVisible(false)
@@ -49,27 +49,27 @@ const InputSheet: React.FC<InputSheetProps> = ({
 
     return (
         <BottomSheet visible={visible} setVisible={setVisible} onClose={handleClose}>
-            <View style={{ rowGap: spacing.xl }}>
-                {title && (
+            <View style={{ rowGap: tokens.spacing.xl }}>
+                {Boolean(title) && (
                     <TText
                         style={{
-                            color: color.text._100,
-                            fontSize: fontSize.l,
-                            paddingLeft: spacing.s,
+                            color: tokens.text.primary,
+                            fontSize: 20,
+                            paddingLeft: tokens.spacing.sm,
                         }}>
                         {title}
                     </TText>
                 )}
-                {description && (
+                {Boolean(description) && (
                     <TText
                         style={{
-                            color: color.text._400,
+                            color: tokens.text.secondary,
                         }}>
                         {description}
                     </TText>
                 )}
 
-                <View style={{ flexDirection: 'row', columnGap: spacing.m }}>
+                <View style={{ flexDirection: 'row', columnGap: tokens.spacing.md }}>
                     <ThemedTextInput
                         multiline={multiline}
                         autoFocus={autoFocus}
@@ -78,10 +78,12 @@ const InputSheet: React.FC<InputSheetProps> = ({
                         value={text}
                         onChangeText={setText}
                         containerStyle={{ flex: 1 }}
-                        numberOfLines={10}
+                        numberOfLines={multiline ? 10 : 1}
                     />
                 </View>
-                {errorMessage && <TText style={{ color: color.error._300 }}>{errorMessage}</TText>}
+                {Boolean(errorMessage) && (
+                    <TText style={{ color: tokens.status.error }}>{errorMessage}</TText>
+                )}
 
                 <View
                     style={{
@@ -92,17 +94,19 @@ const InputSheet: React.FC<InputSheetProps> = ({
                     <View
                         style={{
                             flexDirection: 'row',
-                            columnGap: spacing.xl,
+                            columnGap: tokens.spacing.xl,
                             justifyContent: 'flex-end',
                         }}>
                         <ThemedButton
-                            iconStyle={{ color: color.text._400 }}
+                            accessibilityLabel="Clear input"
+                            iconStyle={{ color: tokens.text.secondary }}
                             iconName="close"
                             variant="tertiary"
                             onPress={() => setText('')}
                         />
                         <ThemedButton
-                            iconStyle={{ color: color.text._400 }}
+                            accessibilityLabel="Paste from clipboard"
+                            iconStyle={{ color: tokens.text.secondary }}
                             iconName="copy"
                             variant="tertiary"
                             onPress={async () => {

@@ -75,6 +75,7 @@ const UserCardEditor = () => {
             <AvatarViewer editorButton={false} />
             <View style={styles.nameBar}>
                 <ContextMenu
+                    triggerAccessibilityLabel="User image actions"
                     placement="right"
                     buttons={[
                         {

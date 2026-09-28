@@ -1,14 +1,18 @@
 import { useRouter } from 'expo-router'
-import { Text, TouchableOpacity } from 'react-native'
+import { Pressable, Text } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
-import Avatar from '@components/views/Avatar'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
+import GlassPortrait from '@components/liquid/GlassPortrait'
+import Drawer from '@components/views/Drawer'
 import { Characters } from '@lib/state/Characters'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const UserInfo = () => {
     const router = useRouter()
-    const { color, spacing, borderWidth, borderRadius, fontSize } = Theme.useTheme()
+    const setShow = Drawer.useDrawerStore((state) => state.setShow)
+    const { spacing, fontSize } = Theme.useTheme()
+    const tokens = useAstryxTokens()
     const { userName, imageID } = Characters.useUserStore(
         useShallow((state) => ({
             userName: state.card?.name,
@@ -16,8 +20,11 @@ const UserInfo = () => {
         }))
     )
     return (
-        <TouchableOpacity
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open user profile"
             onPress={() => {
+                setShow(Drawer.ID.SETTINGS, false)
                 router.push('/screens/UserManagerScreen')
             }}
             style={{
@@ -25,24 +32,17 @@ const UserInfo = () => {
                 flexDirection: 'row',
                 columnGap: spacing.l,
                 padding: spacing.xl,
-                borderBottomColor: color.neutral._400,
-                borderBottomWidth: 1,
+                borderRadius: 24,
+                backgroundColor: tokens.background.surface,
+                marginHorizontal: spacing.l,
+                marginBottom: spacing.m,
             }}>
-            <Avatar
-                targetImage={Characters.getImageDir(imageID)}
-                style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: borderRadius.l,
-                    borderColor: color.neutral._400,
-                    borderWidth: borderWidth.s,
-                }}
-            />
+            <GlassPortrait image={Characters.getImageDir(imageID)} size={48} />
 
-            <Text style={{ fontSize: fontSize.l, color: color.text._100, fontWeight: '600' }}>
+            <Text style={{ fontSize: fontSize.l, color: tokens.text.primary, fontWeight: '600' }}>
                 {userName}
             </Text>
-        </TouchableOpacity>
+        </Pressable>
     )
 }
 

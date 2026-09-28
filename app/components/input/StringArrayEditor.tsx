@@ -1,8 +1,8 @@
 import { AntDesign } from '@expo/vector-icons'
 import React, { useState } from 'react'
 import {
-    TextInput,
-    TouchableOpacity,
+    Pressable,
+    StyleProp,
     View,
     StyleSheet,
     ViewStyle,
@@ -10,13 +10,14 @@ import {
 } from 'react-native'
 
 import ThemedButton from '@components/buttons/ThemedButton'
+import ThemedTextInput from '@components/input/ThemedTextInput'
 import TText from '@components/text/TText'
 import { useI18n } from '@lib/i18n'
 import { Logger } from '@lib/state/Logger'
 import { Theme } from '@lib/theme/ThemeManager'
 
 type StringArrayEditorProps = {
-    containerStyle?: ViewStyle
+    containerStyle?: StyleProp<ViewStyle>
     label?: string
     value: string[]
     setValue: (newdata: string[]) => void
@@ -42,7 +43,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
     filterOnly = false,
     showSuggestionsOnEmpty = false,
 }) => {
-    const { color, borderRadius } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
     const { t } = useI18n()
     const styles = useStyles()
     const [newData, setNewData] = useState('')
@@ -58,7 +59,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
             Logger.warnToast('Value cannot be empty')
             return
         }
-        if (value.includes(newData)) {
+        if (!allowDuplicates && value.includes(newData)) {
             Logger.warnToast('Value already exists')
             return
         }
@@ -74,46 +75,34 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                 {value.length !== 0 && (
                     <View style={styles.tagContainer}>
                         {value.map((item, index) => (
-                            <TouchableOpacity
+                            <Pressable
                                 key={index}
                                 style={styles.tag}
-                                onPress={() => handleSplice(index)}>
+                                onPress={() => handleSplice(index)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${t('Remove')} ${item}`}>
                                 <TText style={styles.tagText}>
                                     {item.replaceAll('\n', replaceNewLine ?? '\n')}
                                 </TText>
-                                <AntDesign name="close" size={16} color={color.text._400} />
-                            </TouchableOpacity>
+                                <AntDesign name="close" size={16} color={tokens.text.secondary} />
+                            </Pressable>
                         ))}
                     </View>
                 )}
                 {(newData || showSuggestionsOnEmpty) && filteredSuggestions.length > 0 && (
-                    <View
-                        style={{
-                            marginBottom: 4,
-                            flexDirection: 'row',
-                            columnGap: 4,
-                            alignItems: 'center',
-                        }}>
+                    <View style={styles.suggestionsRow}>
                         {!filterOnly && (
-                            <TText style={{ color: color.text._400, marginBottom: 4 }}>
-                                Suggestions
-                            </TText>
+                            <TText style={styles.suggestionsLabel}>{t('Suggestions')}</TText>
                         )}
                         <ScrollView
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             nestedScrollEnabled
-                            style={{
-                                borderRadius: borderRadius.m,
-                            }}
-                            contentContainerStyle={{
-                                backgroundColor: color.neutral._100,
-                                flexDirection: 'row',
-                                columnGap: 4,
-                            }}>
+                            style={styles.suggestionsScroll}
+                            contentContainerStyle={styles.suggestionsContent}>
                             {filteredSuggestions.map((item, index) => (
                                 <ThemedButton
-                                    buttonStyle={{ paddingVertical: 4 }}
+                                    size="sm"
                                     onPress={() => addData(item)}
                                     variant="secondary"
                                     label={item}
@@ -125,17 +114,24 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
                 )}
 
                 <View style={styles.inputContainer}>
-                    <TextInput
+                    <ThemedTextInput
+                        containerStyle={styles.inputWrapper}
                         style={styles.input}
                         value={newData}
                         onChangeText={setNewData}
-                        keyboardType="default"
                         multiline
+                        numberOfLines={2}
                         placeholder={t(placeholder)}
-                        placeholderTextColor={color.text._700}
+                        accessibilityLabel={label ? `${label} input` : t('Enter value')}
                     />
 
-                    {!filterOnly && <ThemedButton label="Add" onPress={() => addData(newData)} />}
+                    {!filterOnly && (
+                        <ThemedButton
+                            label="Add"
+                            onPress={() => addData(newData)}
+                            accessibilityLabel={t('Add value')}
+                        />
+                    )}
                 </View>
             </View>
         </View>
@@ -145,7 +141,7 @@ const StringArrayEditor: React.FC<StringArrayEditorProps> = ({
 export default StringArrayEditor
 
 const useStyles = () => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
 
     return StyleSheet.create({
         mainContainer: {
@@ -154,62 +150,83 @@ const useStyles = () => {
 
         contentContainer: {
             borderWidth: 1,
-            color: color.text._100,
-            borderColor: color.neutral._300,
-            paddingHorizontal: spacing.s,
-            paddingVertical: spacing.s,
-            borderRadius: borderRadius.m,
+            borderColor: tokens.border.default,
+            paddingHorizontal: tokens.spacing.sm,
+            paddingVertical: tokens.spacing.sm,
+            borderRadius: tokens.radius.element,
+            backgroundColor: tokens.background.surface,
         },
 
         title: {
-            color: color.text._100,
-            marginBottom: spacing.m,
+            color: tokens.text.primary,
+            marginBottom: tokens.spacing.md,
+            fontWeight: '600',
         },
 
         tagContainer: {
             flexDirection: 'row',
-            columnGap: spacing.m,
-            rowGap: spacing.m,
-            paddingBottom: spacing.m,
-            marginBottom: spacing.m,
+            columnGap: tokens.spacing.sm,
+            rowGap: tokens.spacing.sm,
+            paddingBottom: tokens.spacing.md,
+            marginBottom: tokens.spacing.md,
             borderBottomWidth: 1,
-            borderColor: color.primary._200,
+            borderColor: tokens.border.default,
             flexWrap: 'wrap',
         },
 
         tag: {
-            borderColor: color.primary._700,
+            borderColor: tokens.border.emphasized,
             borderWidth: 1,
-            paddingVertical: 4,
-            paddingLeft: 12,
-            paddingRight: 8,
-            borderRadius: 8,
+            paddingVertical: tokens.spacing.xs,
+            paddingLeft: tokens.spacing.md,
+            paddingRight: tokens.spacing.sm,
+            borderRadius: tokens.radius.full,
             flexDirection: 'row',
             alignItems: 'center',
+            backgroundColor: tokens.background.muted,
         },
 
         tagText: {
-            color: color.text._100,
-            marginRight: 8,
+            color: tokens.text.primary,
+            marginRight: tokens.spacing.sm,
         },
 
-        emptyTag: {
-            color: color.text._400,
-            paddingVertical: 4,
-            paddingHorizontal: 12,
-            fontStyle: 'italic',
+        suggestionsRow: {
+            marginBottom: tokens.spacing.xs,
+            flexDirection: 'row',
+            columnGap: tokens.spacing.xs,
+            alignItems: 'center',
+        },
+
+        suggestionsLabel: {
+            color: tokens.text.secondary,
+            marginBottom: tokens.spacing.xs,
+        },
+
+        suggestionsScroll: {
+            borderRadius: tokens.radius.element,
+            flex: 1,
+        },
+
+        suggestionsContent: {
+            backgroundColor: tokens.background.muted,
+            flexDirection: 'row',
+            columnGap: tokens.spacing.xs,
+            padding: tokens.spacing.xs,
+        },
+
+        inputWrapper: {
+            flex: 1,
         },
 
         input: {
-            flex: 1,
-            color: color.text._100,
-            paddingHorizontal: 8,
-            borderRadius: 8,
+            minHeight: tokens.size.lg,
         },
 
         inputContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+            columnGap: tokens.spacing.sm,
         },
     })
 }

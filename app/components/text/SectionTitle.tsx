@@ -16,19 +16,23 @@ const SectionTitle = ({
     style?: TextStyle
     visible?: boolean
 }) => {
-    const { color, spacing } = Theme.useTheme()
+    const { astryx } = Theme.useTheme()
     if (visible)
         return (
             <TText
                 {...props}
-                style={{
-                    color: color.text._100,
-                    fontSize: 16,
-                    paddingBottom: spacing.m,
-                    borderBottomWidth: 1,
-                    borderColor: color.neutral._500,
-                    ...style,
-                }}>
+                style={[
+                    {
+                        color: astryx.text.primary,
+                        fontSize: 16,
+                        fontWeight: '600',
+                        lineHeight: 22,
+                        paddingBottom: astryx.spacing.md,
+                        borderBottomWidth: 1,
+                        borderColor: astryx.border.default,
+                    },
+                    style,
+                ]}>
                 {children}
             </TText>
         )

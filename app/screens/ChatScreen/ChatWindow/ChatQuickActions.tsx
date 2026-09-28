@@ -46,7 +46,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
         }))
     )
     const showEditor = useChatEditorStore((state) => state.show)
-    const { color } = Theme.useTheme()
+    const { color, glass } = Theme.useTheme()
     const [quickDelete] = useMMKVBoolean(AppSettings.QuickDelete)
     const { deleteEntry } = Chats.useEntry()
     const { chatId, loadChat } = Chats.useChat()
@@ -98,26 +98,23 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
     return (
         <View
             style={{
-                flex: 1,
-                alignItems: 'flex-end',
-                position: 'absolute',
-                bottom: -2,
-                right: -4,
-                width: '100%',
+                alignItems: 'flex-start',
+                marginVertical: 6,
             }}>
             <Animated.View
                 entering={StretchInY.duration(100)}
                 exiting={StretchOutY.duration(100)}
                 style={{
                     flexDirection: 'row',
-                    columnGap: 12,
+                    flexWrap: 'wrap',
+                    columnGap: 4,
                     alignItems: 'center',
-                    paddingVertical: 6,
-                    paddingHorizontal: 12,
-                    borderRadius: 999,
+                    paddingVertical: 4,
+                    paddingHorizontal: 4,
+                    borderRadius: 24,
                     borderWidth: 1,
-                    borderColor: color.neutral._400,
-                    backgroundColor: color.neutral._200 + 'F2',
+                    borderColor: glass.hairline,
+                    backgroundColor: glass.surface,
                     boxShadow: [
                         {
                             offsetX: 0,
@@ -135,6 +132,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                                 entering={ZoomIn.duration(200)}
                                 exiting={ZoomOut.duration(200)}>
                                 <ThemedButton
+                                    accessibilityLabel="Delete message"
                                     variant="tertiary"
                                     iconName="delete"
                                     iconSize={24}
@@ -161,6 +159,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                             entering={ZoomIn.duration(200)}
                             exiting={ZoomOut.duration(200)}>
                             <ThemedButton
+                                accessibilityLabel="Fork message"
                                 variant="tertiary"
                                 iconName="fork"
                                 iconSize={22}
@@ -175,6 +174,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                             entering={ZoomIn.duration(200)}
                             exiting={ZoomOut.duration(200)}>
                             <ThemedButton
+                                accessibilityLabel="Copy message"
                                 variant="tertiary"
                                 iconName="copy"
                                 iconSize={22}
@@ -198,6 +198,7 @@ const ChatQuickActions: React.FC<ChatActionProps> = ({ index, nowGenerating, isL
                             entering={ZoomIn.duration(200)}
                             exiting={ZoomOut.duration(200)}>
                             <ThemedButton
+                                accessibilityLabel="Edit message"
                                 variant="tertiary"
                                 iconName="edit"
                                 iconSize={24}

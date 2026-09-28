@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow'
 
 import HeartbeatButton from '@components/buttons/HeartbeatButton'
 import ThemedButton from '@components/buttons/ThemedButton'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import DropdownSheet from '@components/input/DropdownSheet'
 import MultiDropdownSheet from '@components/input/MultiDropdownSheet'
 import ThemedTextInput from '@components/input/ThemedTextInput'
@@ -73,8 +74,11 @@ const AddConnection = () => {
     }, [template, handleGetModelList])
 
     return (
-        <SafeAreaView edges={['bottom']} style={styles.mainContainer}>
-            <Stack.Screen options={{ title: t('Add Connection') }} />
+        <AstryxScreen
+            title={t('Add Connection')}
+            subtitle="Configure a hosted model connection"
+            showMenu={false}>
+            <SafeAreaView edges={['bottom']} style={styles.mainContainer}>
             <ScrollView
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
@@ -197,6 +201,7 @@ const AddConnection = () => {
                                 />
                             )}
                             <ThemedButton
+                                accessibilityLabel="Reload model list"
                                 onPress={() => {
                                     handleGetModelList()
                                 }}
@@ -240,7 +245,8 @@ const AddConnection = () => {
                     router.back()
                 }}
             />
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

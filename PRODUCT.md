@@ -14,11 +14,11 @@ ChatterUI is a native mobile frontend for running on-device models or connecting
 
 ## Brand Personality
 
-Restrained, clear, and calm. The interface should feel native and deliberate, with strong black-and-white hierarchy, quiet surfaces, and familiar controls that disappear into the task.
+Restrained, clear, and calm. Follow the Fable cookbook from Appllama/liquid-glass-chat-ui: cool neutral surfaces, circular portraits, black-and-white message hierarchy, and a floating glass composer. The interface should feel native and deliberate.
 
 ## Anti-references
 
-Avoid colorful or purple-tinted chrome, ornamental gradients, glossy glass effects, oversized controls, excessive card nesting, decorative motion, and visual treatments that compete with conversation content. Do not remove or obscure advanced functionality in pursuit of minimalism.
+Avoid colorful or purple-tinted chrome, ornamental gradients, excessive card nesting, and motion that competes with conversation content. Use the requested Liquid Glass material purposefully for floating controls and navigation. Do not remove or obscure advanced functionality in pursuit of visual fidelity.
 
 ## Design Principles
 

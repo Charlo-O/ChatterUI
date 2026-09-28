@@ -1,12 +1,11 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { FlatList, Linking, Text, View } from 'react-native'
+import { FlatList, Linking } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
+import { AstryxEmptyState } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import InputSheet from '@components/views/InputSheet'
 import { APIManager } from '@lib/engine/API/APIManagerState'
 import { Logger } from '@lib/state/Logger'
@@ -25,68 +24,66 @@ const TemplateManager = () => {
         }))
     )
     const [showPaste, setShowPaste] = useState(false)
-    const { color, spacing } = Theme.useTheme()
+    const { spacing } = Theme.useTheme()
+    const actions = (
+        <ContextMenu
+            triggerAccessibilityLabel="Template actions"
+            triggerIcon="setting"
+            placement="bottom"
+            buttons={[
+                {
+                    label: 'Import Template',
+                    icon: 'download',
+                    onPress: async (close) => {
+                        close()
+                        const result = await pickJSONDocument()
+                        if (!result.success) return
+                        addTemplate(result.data)
+                    },
+                },
+                {
+                    label: 'Paste Template',
+                    icon: 'file',
+                    onPress: (close) => {
+                        close()
+                        setShowPaste(true)
+                    },
+                },
+                {
+                    label: 'Get Templates',
+                    icon: 'github',
+                    onPress: (close) => {
+                        close()
+                        Linking.openURL('https://github.com/Vali-98/ChatterUI/discussions/126')
+                    },
+                },
+                {
+                    label: 'Learn About Templates',
+                    icon: 'info',
+                    onPress: (close) => {
+                        close()
+                        Linking.openURL(
+                            'https://github.com/Vali-98/ChatterUI/blob/dev/docs/CustomTemplates.md'
+                        )
+                    },
+                },
+            ]}
+        />
+    )
 
     return (
-        <SafeAreaView
-            edges={['bottom']}
-            style={{
-                paddingTop: spacing.xl,
-                paddingHorizontal: spacing.xl,
-                paddingBottom: spacing.xl2,
-                flex: 1,
-            }}>
-            <HeaderTitle title="Template Manager" />
-            <HeaderButton
-                headerRight={() => (
-                    <ContextMenu
-                        triggerIcon="setting"
-                        placement="bottom"
-                        buttons={[
-                            {
-                                label: 'Import Template',
-                                icon: 'download',
-                                onPress: async (close) => {
-                                    close()
-                                    const result = await pickJSONDocument()
-                                    if (!result.success) {
-                                        return
-                                    }
-                                    addTemplate(result.data)
-                                },
-                            },
-                            {
-                                label: 'Paste Template',
-                                icon: 'file',
-                                onPress: (close) => {
-                                    close()
-                                    setShowPaste(true)
-                                },
-                            },
-                            {
-                                label: 'Get Templates',
-                                icon: 'github',
-                                onPress: (close) => {
-                                    close()
-                                    Linking.openURL(
-                                        'https://github.com/Vali-98/ChatterUI/discussions/126'
-                                    )
-                                },
-                            },
-                            {
-                                label: 'Learn About Templates',
-                                icon: 'info',
-                                onPress: (close) => {
-                                    close()
-                                    Linking.openURL(
-                                        'https://github.com/Vali-98/ChatterUI/blob/dev/docs/CustomTemplates.md'
-                                    )
-                                },
-                            },
-                        ]}
-                    />
-                )}
-            />
+        <AstryxScreen
+            title="Template Manager"
+            subtitle="Reusable API request templates"
+            showMenu={false}
+            actions={actions}>
+            <SafeAreaView
+                edges={['bottom']}
+                style={{
+                    paddingHorizontal: spacing.xl,
+                    paddingBottom: spacing.xl2,
+                    flex: 1,
+                }}>
             <InputSheet
                 visible={showPaste}
                 setVisible={setShowPaste}
@@ -111,28 +108,16 @@ const TemplateManager = () => {
             )}
 
             {templates.length === 0 && (
-                <View
-                    style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}>
-                    <MaterialCommunityIcons
-                        name="file-question-outline"
-                        size={64}
-                        color={color.text._700}
-                    />
-                    <Text
-                        style={{
-                            color: color.text._400,
-                            fontStyle: 'italic',
-                            marginTop: spacing.l,
-                        }}>
-                        No Custom Templates Added
-                    </Text>
-                </View>
+                <AstryxEmptyState
+                    icon="description"
+                    title="No custom templates"
+                    description="Import or paste a template to reuse an API configuration."
+                    actionLabel="Paste template"
+                    onAction={() => setShowPaste(true)}
+                />
             )}
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

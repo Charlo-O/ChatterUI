@@ -80,6 +80,7 @@ const UserListing: React.FC<CharacterListingProps> = ({ user }) => {
 
     return (
         <ContextMenu
+            triggerAccessibilityLabel="User actions"
             longPress
             onPress={async () => {
                 await setCard(user.id)

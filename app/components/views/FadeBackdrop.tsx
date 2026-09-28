@@ -13,7 +13,11 @@ const FadeBackrop: React.FC<FadeScreenProps> = ({ handleOverlayClick, children }
     }
     return (
         <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.absolute}>
-            <Pressable onPress={onBackdropPress} style={styles.absolute}>
+            <Pressable
+                accessibilityRole={children ? undefined : 'button'}
+                accessibilityLabel={children ? undefined : 'Close overlay'}
+                onPress={onBackdropPress}
+                style={styles.absolute}>
                 {children}
             </Pressable>
         </Animated.View>
@@ -27,6 +31,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         height: '200%', // this is needed due to negative padding on some screens
         width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(1, 18, 40, 0.42)',
     },
 })

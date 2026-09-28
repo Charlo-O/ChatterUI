@@ -1,13 +1,15 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const ColorTestScreen = () => {
     const { color, spacing } = Theme.useTheme()
 
     return (
-        <View>
+        <AstryxScreen title="Color Test" subtitle="Theme token preview">
+        <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl2 }}>
             <View style={{ padding: spacing.xl2, backgroundColor: color.neutral._200 }}>
                 <Text style={{ color: color.text._100 }}>ColorTest</Text>
             </View>
@@ -37,7 +39,8 @@ const ColorTestScreen = () => {
                     </View>
                 )
             })}
-        </View>
+        </ScrollView>
+        </AstryxScreen>
     )
 }
 

@@ -1,18 +1,16 @@
 import { FlashList } from '@shopify/flash-list'
-import { Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { Text } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
+import { AstryxCard, AstryxEmptyState, useAstryxTokens } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import Alert from '@components/views/Alert'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import { Logger, LogLevel } from '@lib/state/Logger'
-import { Theme } from '@lib/theme/ThemeManager'
 import { saveStringToDownload } from '@lib/utils/File'
 
 const LogsScreen = () => {
-    const { color } = Theme.useTheme()
+    const tokens = useAstryxTokens()
     const { logs, flushLogs } = Logger.useLoggerStore(
         useShallow((state) => ({
             logs: state.logs,
@@ -52,14 +50,15 @@ const LogsScreen = () => {
     }
 
     const logColor: Record<LogLevel, string> = {
-        [LogLevel.INFO]: 'white',
-        [LogLevel.WARN]: 'yellow',
-        [LogLevel.ERROR]: 'red',
-        [LogLevel.DEBUG]: 'gray',
+        [LogLevel.INFO]: tokens.text.primary,
+        [LogLevel.WARN]: tokens.status.warning,
+        [LogLevel.ERROR]: tokens.status.error,
+        [LogLevel.DEBUG]: tokens.text.muted,
     }
 
     const headerRight = () => (
         <ContextMenu
+            triggerAccessibilityLabel="Log actions"
             placement="bottom"
             triggerIcon="setting"
             buttons={[
@@ -85,27 +84,21 @@ const LogsScreen = () => {
     )
 
     return (
-        <SafeAreaView
-            edges={['bottom']}
-            style={{
-                flex: 1,
-            }}>
-            <HeaderTitle title="Logs" />
-            <HeaderButton headerRight={headerRight} />
-            <View
+        <AstryxScreen
+            title="Logs"
+            subtitle="Runtime diagnostics"
+            actions={headerRight()}>
+            <AstryxCard
+                muted
                 style={{
-                    borderColor: color.primary._500,
-                    borderWidth: 1,
-                    borderRadius: 16,
+                    borderColor: tokens.border.default,
                     flex: 1,
                     margin: 16,
-                    backgroundColor: '#000',
-
                     padding: 16,
                 }}>
                 <FlashList
                     maintainVisibleContentPosition={{ startRenderingFromBottom: true }}
-                    data={logs}
+                    data={logs ?? []}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
                         <Text
@@ -116,9 +109,16 @@ const LogsScreen = () => {
                             {Logger.LevelName[item.level]} {item.timestamp}: {item.message}
                         </Text>
                     )}
+                    ListEmptyComponent={
+                        <AstryxEmptyState
+                            icon="description"
+                            title="No logs yet"
+                            description="Runtime events will appear here when the app has something to report."
+                        />
+                    }
                 />
-            </View>
-        </SafeAreaView>
+            </AstryxCard>
+        </AstryxScreen>
     )
 }
 

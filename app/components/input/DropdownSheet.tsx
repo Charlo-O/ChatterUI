@@ -20,6 +20,9 @@ type DropdownSheetProps<T> = {
     placeholder?: string
     modalTitle?: string
     closeOnSelect?: boolean
+    accessibilityLabel?: string
+    accessibilityHint?: string
+    disabled?: boolean
 }
 
 const DropdownSheet = <T,>({
@@ -35,15 +38,22 @@ const DropdownSheet = <T,>({
     },
     search = false,
     closeOnSelect = true,
+    accessibilityLabel,
+    accessibilityHint,
+    disabled = false,
 }: DropdownSheetProps<T>) => {
     const styles = useDropdownStyles()
     const [showList, setShowList] = useState(false)
     const [searchFilter, setSearchFilter] = useState('')
     const theme = Theme.useTheme()
     const { t } = useI18n()
+    const { astryx: tokens } = theme
     const items = data.filter((item) =>
         labelExtractor(item).toLowerCase().includes(searchFilter.toLowerCase())
     )
+    const selectedLabel = selected === undefined ? undefined : labelExtractor(selected)
+    const triggerLabel = selectedLabel ?? placeholder
+
     return (
         <View style={containerStyle}>
             <BottomSheet
@@ -55,42 +65,56 @@ const DropdownSheet = <T,>({
                 <TText style={styles.modalTitle}>{modalTitle}</TText>
                 {items.length > 0 ? (
                     <FlatList
-                        contentContainerStyle={{ rowGap: 2 }}
+                        contentContainerStyle={{ rowGap: tokens.spacing.hairline }}
                         showsVerticalScrollIndicator={false}
                         data={items}
                         keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item }) => (
-                            <Pressable
-                                style={
-                                    selected && labelExtractor(item) === labelExtractor(selected)
-                                        ? styles.listItemSelected
-                                        : styles.listItem
-                                }
-                                onPress={() => {
-                                    onChangeValue(item)
-                                    setShowList(!closeOnSelect)
-                                }}>
-                                <TText style={styles.listItemText}>{labelExtractor(item)}</TText>
-                            </Pressable>
-                        )}
+                        renderItem={({ item }) => {
+                            const itemLabel = labelExtractor(item)
+                            const isSelected = selectedLabel === itemLabel
+                            return (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={itemLabel}
+                                    accessibilityState={{ selected: isSelected }}
+                                    style={isSelected ? styles.listItemSelected : styles.listItem}
+                                    onPress={() => {
+                                        onChangeValue(item)
+                                        setShowList(!closeOnSelect)
+                                    }}>
+                                    <TText style={styles.listItemText}>{itemLabel}</TText>
+                                </Pressable>
+                            )
+                        }}
                     />
                 ) : (
                     <TText style={styles.emptyText}>No Items</TText>
                 )}
                 {search && (
                     <TextInput
+                        accessibilityLabel={t('Filter...')}
                         placeholder={t('Filter...')}
-                        placeholderTextColor={theme.color.text._300}
+                        placeholderTextColor={tokens.text.muted}
                         style={styles.searchBar}
                         value={searchFilter}
                         onChangeText={setSearchFilter}
                     />
                 )}
             </BottomSheet>
-            <Pressable style={[style, styles.button]} onPress={() => setShowList(true)}>
-                {selected && <TText style={styles.buttonText}>{labelExtractor(selected)}</TText>}
-                {!selected && <TText style={styles.placeholderText}>{placeholder}</TText>}
-                <Entypo name="chevron-down" color={theme.color.primary._800} size={18} />
+            <Pressable
+                style={[style, styles.button, disabled && styles.buttonDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel ?? triggerLabel}
+                accessibilityHint={accessibilityHint ?? modalTitle}
+                accessibilityState={{ disabled: disabled, expanded: showList }}
+                disabled={disabled}
+                onPress={() => setShowList(true)}>
+                {selectedLabel !== undefined ? (
+                    <TText style={styles.buttonText}>{selectedLabel}</TText>
+                ) : (
+                    <TText style={styles.placeholderText}>{placeholder}</TText>
+                )}
+                <Entypo name="chevron-down" color={tokens.text.secondary} size={18} />
             </Pressable>
         </View>
     )

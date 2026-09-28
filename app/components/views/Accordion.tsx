@@ -1,14 +1,23 @@
 import { Entypo } from '@expo/vector-icons'
 import React, { useState } from 'react'
-import { Pressable, Text, TextStyle, View, ViewProps, ViewStyle } from 'react-native'
+import {
+    Pressable,
+    StyleProp,
+    StyleSheet,
+    TextStyle,
+    View,
+    ViewProps,
+    ViewStyle,
+} from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 interface AccordionProps extends ViewProps {
     defaultState?: boolean
     label?: string
-    labelStyle?: TextStyle
-    accordionStyle?: ViewStyle
+    labelStyle?: StyleProp<TextStyle>
+    accordionStyle?: StyleProp<ViewStyle>
 }
 
 const Accordion: React.FC<AccordionProps> = ({
@@ -19,56 +28,77 @@ const Accordion: React.FC<AccordionProps> = ({
     children,
     ...rest
 }) => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
+    const { astryx: tokens } = Theme.useTheme()
 
     const [show, setShow] = useState(defaultState)
     return (
         <View {...rest}>
             <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={label}
+                accessibilityState={{ expanded: show }}
                 onPress={() => setShow(!show)}
-                style={{
-                    backgroundColor: color.neutral._200,
-                    borderColor: color.neutral._400,
-                    borderWidth: 1,
-                    paddingVertical: spacing.l,
-                    borderTopLeftRadius: borderRadius.l,
-                    borderTopRightRadius: borderRadius.l,
-                    borderBottomLeftRadius: show ? 0 : borderRadius.l,
-                    borderBottomRightRadius: show ? 0 : borderRadius.l,
-                    paddingHorizontal: spacing.xl,
-                    justifyContent: 'space-between',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    ...accordionStyle,
-                }}>
-                <Text style={{ color: color.text._100, fontWeight: '600', ...labelStyle }}>
+                style={({ pressed }) => [
+                    styles.header,
+                    {
+                        backgroundColor: tokens.background.muted,
+                        borderColor: show ? tokens.border.focus : tokens.border.default,
+                        borderTopLeftRadius: tokens.radius.element,
+                        borderTopRightRadius: tokens.radius.element,
+                        borderBottomLeftRadius: show ? 0 : tokens.radius.element,
+                        borderBottomRightRadius: show ? 0 : tokens.radius.element,
+                        paddingVertical: tokens.spacing.md,
+                        paddingHorizontal: tokens.spacing.lg,
+                        opacity: pressed ? 0.76 : 1,
+                    },
+                    accordionStyle,
+                ]}>
+                <TText style={[styles.label, { color: tokens.text.primary }, labelStyle]}>
                     {label}
-                </Text>
+                </TText>
                 <Entypo
                     name={show ? 'chevron-up' : 'chevron-down'}
-                    color={color.text._400}
+                    color={tokens.text.secondary}
                     size={18}
                 />
             </Pressable>
 
             {show && (
                 <View
-                    style={{
-                        backgroundColor: color.neutral._200,
-                        borderColor: color.neutral._400,
-                        borderWidth: 1,
-                        borderTopWidth: 0,
-                        paddingHorizontal: spacing.xl,
-                        paddingTop: spacing.xl,
-                        paddingBottom: spacing.l,
-                        borderBottomLeftRadius: borderRadius.l,
-                        borderBottomRightRadius: borderRadius.l,
-                    }}>
+                    style={[
+                        styles.content,
+                        {
+                            backgroundColor: tokens.background.surface,
+                            borderColor: tokens.border.focus,
+                            paddingHorizontal: tokens.spacing.lg,
+                            paddingTop: tokens.spacing.lg,
+                            paddingBottom: tokens.spacing.md,
+                            borderBottomLeftRadius: tokens.radius.element,
+                            borderBottomRightRadius: tokens.radius.element,
+                        },
+                    ]}>
                     {children}
                 </View>
             )}
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    header: {
+        alignItems: 'center',
+        borderWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    label: {
+        flex: 1,
+        fontWeight: '600',
+    },
+    content: {
+        borderTopWidth: 0,
+        borderWidth: 1,
+    },
+})
 
 export default Accordion

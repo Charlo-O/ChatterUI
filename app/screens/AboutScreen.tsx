@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 
 import SupportButton from '@components/buttons/SupportButton'
 import ThemedButton from '@components/buttons/ThemedButton'
-import HeaderTitle from '@components/views/HeaderTitle'
+import { AstryxCard } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { AppSettings } from '@lib/constants/GlobalValues'
 import { Logger } from '@lib/state/Logger'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -27,57 +28,66 @@ const AboutScreen = () => {
 
     const version = 'v' + appConfig.expo.version
     return (
-        <View style={styles.container}>
-            <HeaderTitle title="About" />
-            <TouchableOpacity activeOpacity={0.8} onPress={updateCounter}>
-                <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
-            </TouchableOpacity>
+        <AstryxScreen title="About" subtitle="About ChatterUI">
+            <ScrollView
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}>
+                <AstryxCard style={styles.card} elevation="low">
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="ChatterUI logo"
+                        activeOpacity={0.8}
+                        onPress={updateCounter}>
+                        <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
+                    </TouchableOpacity>
 
-            <Text style={styles.titleText}>ChatterUI</Text>
-            <Text style={styles.subtitleText}>
-                Version {version} {devMode && '[DEV MODE]'}
-            </Text>
-            {devMode && (
-                <ThemedButton
-                    label="Disable Dev Mode"
-                    variant="critical"
-                    buttonStyle={{
-                        marginTop: spacing.xl,
-                    }}
-                    onPress={() => {
-                        setCounter(0)
-                        setDevMode(false)
-                        Logger.info('Dev mode disabled')
-                    }}
-                />
-            )}
+                    <Text style={styles.titleText}>ChatterUI</Text>
+                    <Text style={styles.subtitleText}>
+                        Version {version} {devMode && '[DEV MODE]'}
+                    </Text>
+                    {devMode && (
+                        <ThemedButton
+                            label="Disable Dev Mode"
+                            variant="critical"
+                            buttonStyle={{
+                                marginTop: spacing.xl,
+                            }}
+                            onPress={() => {
+                                setCounter(0)
+                                setDevMode(false)
+                                Logger.info('Dev mode disabled')
+                            }}
+                        />
+                    )}
 
-            <Text style={styles.body}>
-                ChatterUI is a free and open-source application developed by Vali-98
-            </Text>
-            <Text style={{ marginBottom: spacing.xl3, ...styles.body }}>
-                {`This app is a passion project I develop in my free time. If you're enjoying the app, consider supporting its development!`}
-            </Text>
-            <Text style={{ ...styles.body, marginBottom: spacing.m }}>
-                Donate to ChatterUI here:
-            </Text>
+                    <Text style={styles.body}>
+                        ChatterUI is a free and open-source application developed by Vali-98
+                    </Text>
+                    <Text style={{ marginBottom: spacing.xl3, ...styles.body }}>
+                        {`This app is a passion project I develop in my free time. If you're enjoying the app, consider supporting its development!`}
+                    </Text>
+                    <Text style={{ ...styles.body, marginBottom: spacing.m }}>
+                        Donate to ChatterUI here:
+                    </Text>
 
-            <SupportButton />
+                    <SupportButton />
 
-            <Text style={styles.body}>Got an issue? Report it here:</Text>
-            <Text style={styles.subtitleText}>({`Don't forget to add your Logs!`})</Text>
+                    <Text style={styles.body}>Got an issue? Report it here:</Text>
+                    <Text style={styles.subtitleText}>({`Don't forget to add your Logs!`})</Text>
 
-            <ThemedButton
-                buttonStyle={{ marginTop: spacing.m }}
-                variant="secondary"
-                label="Github Repository"
-                iconName="github"
-                iconSize={20}
-                onPress={() => {
-                    Linking.openURL('https://github.com/Vali-98/ChatterUI')
-                }}
-            />
-        </View>
+                    <ThemedButton
+                        buttonStyle={{ marginTop: spacing.m }}
+                        variant="secondary"
+                        label="Github Repository"
+                        iconName="github"
+                        iconSize={20}
+                        onPress={() => {
+                            Linking.openURL('https://github.com/Vali-98/ChatterUI')
+                        }}
+                    />
+                </AstryxCard>
+            </ScrollView>
+        </AstryxScreen>
     )
 }
 
@@ -88,12 +98,13 @@ const useStyles = () => {
 
     return StyleSheet.create({
         container: {
-            paddingHorizontal: spacing.xl3,
-            paddingBottom: spacing.xl2,
+            paddingHorizontal: spacing.xl2,
+            paddingVertical: spacing.xl2,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
+        card: { maxWidth: 620, width: '100%', alignItems: 'center' },
         titleText: { color: color.text._100, fontSize: 32, marginTop: 16 },
         subtitleText: { color: color.text._400 },
         body: { color: color.text._100, marginTop: spacing.l, textAlign: 'center' },

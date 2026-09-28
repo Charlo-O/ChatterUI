@@ -200,6 +200,7 @@ const ConnectionEditor: React.FC<ConnectionEditorProps> = ({
                                     />
                                 )}
                                 <ThemedButton
+                                    accessibilityLabel="Reload model list"
                                     onPress={() => {
                                         handleGetModelList()
                                     }}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { Theme } from '@lib/theme/ThemeManager'
 
@@ -33,7 +33,12 @@ const CharacterListingTags: React.FC<CharacterListingTagsProps> = ({ tags, onPre
                     flexWrap: 'wrap',
                 }}>
                 {tags.map((tag, index) => (
-                    <TouchableOpacity key={index} onPress={() => onPress(tag)}>
+                    <Pressable
+                        key={index}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Filter by ${tag}`}
+                        onPress={() => onPress(tag)}
+                        style={({ pressed }) => ({ opacity: pressed ? 0.72 : 1 })}>
                         <Text
                             style={{
                                 color: color.text._400,
@@ -41,13 +46,13 @@ const CharacterListingTags: React.FC<CharacterListingTagsProps> = ({ tags, onPre
                                 borderWidth: 1,
                                 borderColor: color.neutral._400,
                                 backgroundColor: color.neutral._300,
-                                paddingHorizontal: spacing.l,
+                                paddingHorizontal: spacing.m,
                                 paddingVertical: spacing.s,
-                                borderRadius: borderRadius.xl2,
+                                borderRadius: borderRadius.m,
                             }}>
                             {tag}
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
             </View>
         </View>

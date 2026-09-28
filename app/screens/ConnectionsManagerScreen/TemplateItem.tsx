@@ -64,6 +64,7 @@ const TemplateItem: React.FC<TemplateItemProps> = ({ item, index }) => {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <ThemedButton
+                    accessibilityLabel="Delete template"
                     onPress={handleDelete}
                     iconName="delete"
                     iconSize={24}
@@ -71,6 +72,7 @@ const TemplateItem: React.FC<TemplateItemProps> = ({ item, index }) => {
                     buttonStyle={{ borderWidth: 0 }}
                 />
                 <ThemedButton
+                    accessibilityLabel="Export template"
                     onPress={handleExport}
                     iconName="download"
                     iconSize={24}

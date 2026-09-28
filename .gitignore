@@ -3,6 +3,11 @@
 # dependencies
 node_modules*
 
+# Read-only upstream UI reference and local verification artifacts
+extra/liquid-glass-chat-ui/
+.qa/
+.playwright-cli/
+
 # dev items
 public/
 

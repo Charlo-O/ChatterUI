@@ -38,6 +38,8 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
     return (
         <View style={styles.swipesItem}>
             <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Previous response"
                 style={styles.swipeButton}
                 onPress={handleSwipeLeft}
                 disabled={nowGenerating || swipeIndex === 0}>
@@ -50,6 +52,8 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
 
             {index !== 0 && (
                 <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Regenerate response"
                     onPress={() => swipeId && regenerateResponse(swipeId)}
                     onLongPress={() => swipeId && regenerateResponse(swipeId, false)}
                     disabled={nowGenerating}
@@ -68,6 +72,8 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
 
             {index !== 0 && (
                 <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Continue response"
                     onPress={() => swipeId && continueResponse(swipeId)}
                     disabled={nowGenerating}
                     style={styles.swipeButton}>
@@ -80,6 +86,8 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
             )}
 
             <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Next response"
                 style={styles.swipeButton}
                 onPress={() => handleSwipeRight('')}
                 onLongPress={() => handleSwipeRight(swipeText ?? '')}
@@ -97,7 +105,7 @@ const ChatSwipes: React.FC<SwipesProps> = ({ nowGenerating, isGreeting, index })
 export default ChatSwipes
 
 const useStyles = () => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
+    const { color, spacing, glass } = Theme.useTheme()
     return StyleSheet.create({
         swipesItem: {
             flexDirection: 'row',
@@ -105,8 +113,8 @@ const useStyles = () => {
             flex: 1,
             marginTop: spacing.s,
             paddingHorizontal: spacing.sm,
-            borderRadius: borderRadius.xl2,
-            backgroundColor: color.neutral._300,
+            borderRadius: 24,
+            backgroundColor: glass.chip,
             zIndex: 32,
         },
 
@@ -118,6 +126,9 @@ const useStyles = () => {
 
         swipeButton: {
             alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 44,
+            minWidth: 36,
             flex: 1,
             paddingVertical: spacing.sm,
         },

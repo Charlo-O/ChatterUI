@@ -1,7 +1,9 @@
 import Slider from '@react-native-community/slider'
-import { useCallback, useState } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { StyleSheet, TextInput, View } from 'react-native'
+import type { AccessibilityActionEvent } from 'react-native'
 
+import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
 type ThemedSliderProps = {
@@ -14,10 +16,16 @@ type ThemedSliderProps = {
     precision?: number
     showInput?: boolean
     disabled?: boolean
+    accessibilityLabel?: string
+    accessibilityHint?: string
 }
 
-const clamp = (val: number, min: number, max: number, precision: number) =>
-    Math.min(Math.max(parseFloat(val?.toFixed(precision) ?? 0), min), max)
+const clamp = (value: number, min: number, max: number, precision: number, step = 0) => {
+    if (!Number.isFinite(value)) return min
+    const rounded = Number(value.toFixed(Math.max(0, precision)))
+    const stepped = step > 0 ? min + Math.round((rounded - min) / step) * step : rounded
+    return Math.min(Math.max(Number(stepped.toFixed(Math.max(0, precision))), min), max)
+}
 
 const ThemedSlider: React.FC<ThemedSliderProps> = ({
     label,
@@ -29,38 +37,118 @@ const ThemedSlider: React.FC<ThemedSliderProps> = ({
     precision = 0,
     showInput = true,
     disabled = false,
+    accessibilityLabel,
+    accessibilityHint,
 }) => {
-    const styles = useStyles()
-    const { color } = Theme.useTheme()
-    const [textValue, setTextValue] = useState(value.toString())
+    const { astryx: tokens } = Theme.useTheme()
+    const [textValue, setTextValue] = useState(String(value))
+    const [sliderValue, setSliderValue] = useState(() => clamp(value, min, max, precision, step))
+    const textValueRef = useRef(String(value))
+    const pendingTextValue = useRef<string | null>(null)
+    const pendingSliderCommit = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    const clampSlider = useCallback(
-        (value: number) => clamp(value, min, max, precision),
-        [min, max, precision]
+    const updateTextValue = (nextValue: string) => {
+        textValueRef.current = nextValue
+        setTextValue(nextValue)
+    }
+
+    const clampValue = useCallback(
+        (nextValue: number) => clamp(nextValue, min, max, precision, step),
+        [min, max, precision, step]
     )
 
-    const handleSliderChange = (v: number) => {
-        if (!isNaN(clampSlider(v))) onValueChange(clampSlider(v))
-        setTextValue(clampSlider(v).toString())
+    const clearPendingSliderCommit = () => {
+        if (pendingSliderCommit.current) {
+            clearTimeout(pendingSliderCommit.current)
+            pendingSliderCommit.current = null
+        }
     }
 
-    const handleTextInputChange = (t: string) => {
-        let v = 0
-        setTextValue(t)
-        v = parseFloat(t)
-        if (!isNaN(v)) onValueChange(clampSlider(v))
+    useEffect(() => () => clearPendingSliderCommit(), [])
+
+    useEffect(() => {
+        setSliderValue(clampValue(value))
+    }, [clampValue, value])
+
+    useEffect(() => {
+        const pending = pendingTextValue.current
+        const parsedPending = Number.parseFloat(textValueRef.current)
+        const currentValue = clampValue(value)
+        const pendingIsInRange =
+            Number.isFinite(parsedPending) && parsedPending >= min && parsedPending <= max
+        if (
+            pending !== null &&
+            pending === textValueRef.current &&
+            pendingIsInRange &&
+            clampValue(parsedPending) === currentValue
+        ) {
+            pendingTextValue.current = null
+            return
+        }
+        pendingTextValue.current = null
+        updateTextValue(String(currentValue))
+    }, [clampValue, max, min, value])
+
+    const handleSliderValueChange = (nextValue: number) => {
+        const next = clampValue(nextValue)
+        if (Number.isFinite(next)) {
+            setSliderValue(next)
+            pendingTextValue.current = null
+            updateTextValue(String(next))
+            clearPendingSliderCommit()
+            pendingSliderCommit.current = setTimeout(() => {
+                pendingSliderCommit.current = null
+                onValueChange(next)
+            }, 250)
+        }
     }
 
-    const handleEndEdit = () => {
-        const v = parseFloat(textValue)
-        if (!isNaN(v)) onValueChange(clamp(v, min, max, precision))
-        setTextValue(clampSlider(value).toString())
+    const handleSliderComplete = (nextValue: number) => {
+        const next = clampValue(nextValue)
+        clearPendingSliderCommit()
+        setSliderValue(next)
+        pendingTextValue.current = null
+        updateTextValue(String(next))
+        onValueChange(next)
     }
+
+    const handleSliderAccessibilityAction = (event: AccessibilityActionEvent) => {
+        if (event.nativeEvent.actionName === 'increment') {
+            handleSliderComplete(sliderValue + (step || (max - min) / 100))
+        } else if (event.nativeEvent.actionName === 'decrement') {
+            handleSliderComplete(sliderValue - (step || (max - min) / 100))
+        }
+    }
+
+    const handleTextInputChange = (nextText: string) => {
+        clearPendingSliderCommit()
+        pendingTextValue.current = nextText
+        updateTextValue(nextText)
+        const parsed = Number.parseFloat(nextText)
+        if (Number.isFinite(parsed)) onValueChange(clampValue(parsed))
+    }
+
+    const commitTextValue = () => {
+        clearPendingSliderCommit()
+        const parsed = Number.parseFloat(textValueRef.current)
+        const next = Number.isFinite(parsed) ? clampValue(parsed) : clampValue(value)
+        pendingTextValue.current = null
+        onValueChange(next)
+        updateTextValue(String(next))
+    }
+
+    const resolvedLabel = accessibilityLabel ?? label
 
     return (
-        <View style={{ alignItems: `center` }}>
-            {label && (
-                <Text style={disabled ? styles.itemNameDisabled : styles.itemName}>{label}</Text>
+        <View style={styles.container}>
+            {!!label && (
+                <TText
+                    style={[
+                        styles.label,
+                        { color: disabled ? tokens.text.disabled : tokens.text.primary },
+                    ]}>
+                    {label}
+                </TText>
             )}
             <View style={styles.sliderContainer}>
                 <Slider
@@ -69,23 +157,42 @@ const ThemedSlider: React.FC<ThemedSliderProps> = ({
                     step={step}
                     minimumValue={min}
                     maximumValue={max}
-                    value={value}
-                    onSlidingComplete={handleSliderChange}
-                    minimumTrackTintColor={color.primary._500}
-                    maximumTrackTintColor={color.neutral._400}
-                    thumbTintColor={color.primary._500}
+                    value={sliderValue}
+                    onValueChange={handleSliderValueChange}
+                    onSlidingComplete={handleSliderComplete}
+                    minimumTrackTintColor={disabled ? tokens.text.disabled : tokens.accent.primary}
+                    maximumTrackTintColor={tokens.border.emphasized}
+                    thumbTintColor={disabled ? tokens.text.disabled : tokens.accent.primary}
+                    accessibilityLabel={resolvedLabel}
+                    accessibilityHint={accessibilityHint}
+                    accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+                    onAccessibilityAction={handleSliderAccessibilityAction}
+                    accessibilityValue={{ min, max, now: sliderValue }}
                 />
                 {showInput && (
                     <TextInput
                         editable={!disabled}
-                        style={disabled ? styles.textBoxDisabled : styles.textBox}
+                        accessibilityLabel={`${resolvedLabel} value`}
+                        accessibilityHint={accessibilityHint}
+                        accessibilityState={{ disabled }}
+                        style={[
+                            styles.textBox,
+                            {
+                                borderColor: disabled
+                                    ? tokens.border.emphasized
+                                    : tokens.border.default,
+                                color: disabled ? tokens.text.disabled : tokens.text.primary,
+                                backgroundColor: tokens.background.surface,
+                                opacity: disabled ? 0.6 : 1,
+                            },
+                        ]}
                         value={textValue}
                         onChangeText={handleTextInputChange}
-                        keyboardType="number-pad"
+                        keyboardType={step > 0 && (precision > 0 || step < 1) ? 'decimal-pad' : 'number-pad'}
                         submitBehavior="blurAndSubmit"
-                        onEndEditing={handleEndEdit}
-                        onSubmitEditing={handleEndEdit}
-                        onBlur={handleEndEdit}
+                        onEndEditing={commitTextValue}
+                        onSubmitEditing={commitTextValue}
+                        onBlur={commitTextValue}
                     />
                 )}
             </View>
@@ -93,46 +200,33 @@ const ThemedSlider: React.FC<ThemedSliderProps> = ({
     )
 }
 
+const styles = StyleSheet.create({
+    container: {
+        alignItems: 'stretch',
+        width: '100%',
+    },
+    label: {
+        fontSize: 14,
+        lineHeight: 20,
+        marginBottom: 4,
+    },
+    sliderContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        minHeight: 40,
+    },
+    slider: {
+        flex: 1,
+        height: 36,
+    },
+    textBox: {
+        borderRadius: 10,
+        borderWidth: 1,
+        flexBasis: 64,
+        minHeight: 32,
+        paddingHorizontal: 8,
+        textAlign: 'center',
+    },
+})
+
 export default ThemedSlider
-
-const useStyles = () => {
-    const { color, spacing, borderRadius } = Theme.useTheme()
-    return StyleSheet.create({
-        itemName: {
-            color: color.text._100,
-        },
-
-        itemNameDisabled: {
-            color: color.text._700,
-        },
-
-        sliderContainer: {
-            flexDirection: `row`,
-        },
-
-        slider: {
-            flex: 9,
-            height: 36,
-        },
-
-        textBox: {
-            borderColor: color.neutral._400,
-            color: color.text._100,
-            backgroundColor: color.neutral._200,
-            borderWidth: 1,
-            borderRadius: borderRadius.m,
-            flex: 1.5,
-            textAlign: `center`,
-        },
-
-        textBoxDisabled: {
-            borderColor: color.neutral._700,
-            color: color.neutral._700,
-            borderWidth: 1,
-            backgroundColor: color.neutral._300,
-            borderRadius: borderRadius.m,
-            flex: 1.5,
-            textAlign: `center`,
-        },
-    })
-}

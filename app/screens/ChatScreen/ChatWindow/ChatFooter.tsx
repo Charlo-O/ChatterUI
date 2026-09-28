@@ -4,36 +4,20 @@ import { Chats } from '@lib/state/Chat'
 import { Theme } from '@lib/theme/ThemeManager'
 
 const ChatFooter = () => {
-    const { chatLength } = Chats.useChat()
-    const { color, fontSize } = Theme.useTheme()
+    const { chat } = Chats.useChat()
+    const { glass } = Theme.useTheme()
+    const firstDate = chat?.messages[0]?.swipes[0]?.send_date
+    const label = !firstDate ? 'Send a message to begin' : firstDate.toDateString() === new Date().toDateString() ? 'Today' : firstDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
     return (
         <View
             style={{
-                paddingBottom: 8,
+                paddingVertical: 16,
                 flex: 1,
                 justifyContent: 'center',
                 flexDirection: 'row',
             }}>
-            <View
-                style={{
-                    backgroundColor: color.neutral._300,
-                    borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 4,
-                    marginBottom: 12,
-                }}>
-                <Text
-                    style={{
-                        color: color.text._700,
-                        textAlign: 'center',
-                        fontSize: fontSize.s,
-                    }}>
-                    {chatLength !== undefined && chatLength <= 1
-                        ? 'Send a message to begin!'
-                        : 'Start of chat'}
-                </Text>
-            </View>
+            <Text style={{ fontSize: 13, fontWeight: '500', color: glass.muted }}>{label}</Text>
         </View>
     )
 }

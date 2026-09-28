@@ -19,6 +19,10 @@ const dbPath =
     Platform.OS === 'web' ? 'web://document/SQLite/db.db' : Paths.document.uri + '/SQLite/db.db'
 
 const exportDB = async (notify: boolean = true) => {
+    if (Platform.OS === 'web') {
+        Logger.warnToast('Database export is available on native builds')
+        return
+    }
     await localDownload(dbPath.replace('file://', ''))
         .then(() => {
             if (notify) Logger.infoToast('Download Successful!')
@@ -27,6 +31,10 @@ const exportDB = async (notify: boolean = true) => {
 }
 
 const importDB = async (uri: string, name: string) => {
+    if (Platform.OS === 'web') {
+        Logger.warnToast('Database import is available on native builds')
+        return
+    }
     const copyDB = async () => {
         await exportDB(false)
         deleteFile(dbPath)

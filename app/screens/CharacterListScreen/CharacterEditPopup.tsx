@@ -103,6 +103,7 @@ const CharacterEditPopup: React.FC<CharacterEditPopupProps> = ({
 
     return (
         <ContextMenu
+            triggerAccessibilityLabel="Character actions"
             disabled={nowLoading || path !== '/'}
             onPress={setCurrentCharacter}
             longPress

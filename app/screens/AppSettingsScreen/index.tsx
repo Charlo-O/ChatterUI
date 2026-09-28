@@ -2,7 +2,7 @@ import React from 'react'
 import { View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 
-import HeaderTitle from '@components/views/HeaderTitle'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { Theme } from '@lib/theme/ThemeManager'
 
 import CharacterSettings from './CharacterSettings'
@@ -20,14 +20,14 @@ const AppSettingsMenu = () => {
     const { spacing } = Theme.useTheme()
 
     return (
-        <KeyboardAwareScrollView
-            style={{
-                marginVertical: spacing.xl2,
-                paddingHorizontal: spacing.xl2,
-                paddingBottom: spacing.xl3,
-            }}
-            contentContainerStyle={{ rowGap: spacing.sm }}>
-            <HeaderTitle title="Settings" />
+        <AstryxScreen title="Settings" subtitle="Workspace preferences">
+            <KeyboardAwareScrollView
+                contentContainerStyle={{
+                    rowGap: spacing.sm,
+                    paddingHorizontal: spacing.xl2,
+                    paddingVertical: spacing.xl2,
+                    paddingBottom: spacing.xl3,
+                }}>
 
             <LanguageSettings />
             <StyleSettings />
@@ -41,7 +41,8 @@ const AppSettingsMenu = () => {
             <SecuritySettings />
 
             <View style={{ paddingVertical: spacing.xl3 }} />
-        </KeyboardAwareScrollView>
+            </KeyboardAwareScrollView>
+        </AstryxScreen>
     )
 }
 

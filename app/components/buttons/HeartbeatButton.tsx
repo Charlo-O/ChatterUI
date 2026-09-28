@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
 
-import { Theme } from '@lib/theme/ThemeManager'
+import TText from '@components/text/TText'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 
 import ThemedButton from './ThemedButton'
 
@@ -21,24 +22,29 @@ type HeartbeatButtonProps = {
     headers?: any
 }
 
+const defaultApiFormat = (url: string) => {
+    try {
+        return new URL('v1/models', url).toString()
+    } catch {
+        return ''
+    }
+}
+
+const noop = () => {}
+
 const HeartbeatButton: React.FC<HeartbeatButtonProps> = ({
     api,
-    apiFormat = (url: string) => {
-        try {
-            const newurl = new URL('v1/models', api)
-            return newurl.toString()
-        } catch {
-            return ''
-        }
-    },
+    apiFormat = defaultApiFormat,
     messageNeutral = 'Not Connected',
     messageError = 'Failed To Connect',
     messageOK = 'Connected',
-    headers = {},
-    callback = () => {},
+    headers,
+    callback = noop,
 }) => {
-    const { color } = Theme.useTheme()
+    const tokens = useAstryxTokens()
     const [status, setStatus] = useState<ResponseStatus>(ResponseStatus.DEFAULT)
+    const [checking, setChecking] = useState(false)
+    const autoCheckedApi = useRef<string | null>(null)
 
     const StatusMessage = () => {
         switch (status) {
@@ -53,6 +59,7 @@ const HeartbeatButton: React.FC<HeartbeatButtonProps> = ({
 
     const handleCheck = useCallback(async () => {
         const endpoint = apiFormat(api)
+        setChecking(true)
         try {
             const controller = new AbortController()
             const timeout = setTimeout(() => {
@@ -68,51 +75,75 @@ const HeartbeatButton: React.FC<HeartbeatButtonProps> = ({
             setStatus(response.status === 200 ? ResponseStatus.OK : ResponseStatus.ERROR)
         } catch {
             setStatus(ResponseStatus.ERROR)
+        } finally {
+            setChecking(false)
         }
     }, [api, apiFormat, callback, headers])
 
     useEffect(() => {
-        handleCheck()
+        if (autoCheckedApi.current === api) return
+        autoCheckedApi.current = api
+        void handleCheck()
     }, [handleCheck])
 
-    const getButtonColor = () => {
-        switch (status) {
-            case ResponseStatus.DEFAULT:
-                return color.neutral._200
-            case ResponseStatus.ERROR:
-                return color.error._400
-            case ResponseStatus.OK:
-                return color.primary._500
-        }
-    }
-
-    const buttonColor = getButtonColor()
+    const isDark = tokens.dark
+    const statusPalette =
+        status === ResponseStatus.ERROR
+            ? {
+                  background: isDark ? 'rgba(255, 152, 144, 0.24)' : '#FEE4E6',
+                  foreground: isDark ? '#FFC4BE' : tokens.status.error,
+              }
+            : status === ResponseStatus.OK
+              ? {
+                    background: isDark ? 'rgba(57, 221, 137, 0.18)' : '#D6FEE4',
+                    foreground: tokens.status.success,
+                }
+              : {
+                    background: tokens.background.muted,
+                    foreground: tokens.text.secondary,
+                }
 
     return (
-        <View style={{ flexDirection: 'row', marginTop: 8 }}>
-            <ThemedButton label="Test" onPress={handleCheck} variant="secondary" />
+        <View style={[styles.row, { marginTop: tokens.spacing.sm }]}>
+            <ThemedButton
+                label="Test"
+                onPress={handleCheck}
+                variant="secondary"
+                loading={checking}
+                accessibilityHint="Test the API connection"
+            />
             <View
-                style={{
-                    marginLeft: 4,
-                    backgroundColor: buttonColor,
-                    borderColor:
-                        status === ResponseStatus.DEFAULT ? color.neutral._100 : buttonColor,
-                    padding: 8,
-                    minWidth: 160,
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                }}>
-                <Text
-                    style={{
-                        color: color.text._100,
-                    }}>
+                accessibilityRole="text"
+                accessibilityLiveRegion="polite"
+                style={[
+                    styles.status,
+                    {
+                        marginLeft: tokens.spacing.xs,
+                        backgroundColor: statusPalette.background,
+                        borderColor: tokens.border.default,
+                        borderRadius: tokens.radius.element,
+                        paddingVertical: tokens.spacing.sm,
+                        paddingHorizontal: tokens.spacing.lg,
+                    },
+                ]}>
+                <TText style={{ color: statusPalette.foreground, fontWeight: '500' }}>
                     {StatusMessage()}
-                </Text>
+                </TText>
             </View>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    row: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    status: {
+        alignItems: 'center',
+        borderWidth: 1,
+        minWidth: 160,
+    },
+})
 
 export default HeartbeatButton

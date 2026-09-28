@@ -1,14 +1,16 @@
-import { AntDesign, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { FlatList, Pressable, Text, View } from 'react-native'
+import { FlatList, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
-import ThemedButton from '@components/buttons/ThemedButton'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
+import {
+    AstryxButton,
+    AstryxEmptyState,
+    AstryxIconButton,
+    useAstryxTokens,
+} from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { APIManager } from '@lib/engine/API/APIManagerState'
-import { Theme } from '@lib/theme/ThemeManager'
 
 import ConnectionItem from './ConnectionItem'
 
@@ -20,64 +22,70 @@ const ConnectionsManagerScreen = () => {
             apiValues: state.values,
         }))
     )
-    const { color, spacing } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     const router = useRouter()
     return (
-        <SafeAreaView
-            edges={['bottom']}
-            style={{
-                paddingTop: spacing.xl,
-                paddingBottom: spacing.xl2,
-                flex: 1,
-            }}>
-            <HeaderTitle title="API Manager" />
-            <HeaderButton
-                headerRight={() => (
-                    <Pressable
-                        onPressIn={() => {
-                            router.push('/screens/ConnectionsManagerScreen/TemplateManager')
-                        }}>
-                        <AntDesign name="file" color={color.text._400} size={26} />
-                    </Pressable>
-                )}
-            />
-            {apiValues.length > 0 && (
-                <FlatList
-                    style={{
-                        paddingHorizontal: spacing.xl,
-                    }}
-                    contentContainerStyle={{ rowGap: 4, paddingBottom: 24 }}
-                    data={apiValues}
-                    keyExtractor={(item, index) => item.configName + index}
-                    renderItem={({ item, index }) => <ConnectionItem item={item} index={index} />}
-                    removeClippedSubviews={false}
-                    showsVerticalScrollIndicator={false}
+        <AstryxScreen
+            title="API Manager"
+            subtitle="Hosted model connections"
+            showMenu={false}
+            actions={
+                <AstryxIconButton
+                    iconName="file"
+                    label="Open templates"
+                    onPress={() => router.push('/screens/ConnectionsManagerScreen/TemplateManager')}
                 />
-            )}
+            }>
+            <SafeAreaView
+                edges={['bottom']}
+                style={{
+                    paddingBottom: tokens.spacing.xxl,
+                    flex: 1,
+                    width: '100%',
+                    maxWidth: 1040,
+                    alignSelf: 'center',
+                }}>
+                {apiValues.length > 0 && (
+                    <FlatList
+                        style={{ paddingHorizontal: tokens.spacing.xl }}
+                        contentContainerStyle={{ rowGap: 4, paddingBottom: tokens.spacing.xl }}
+                        data={apiValues}
+                        keyExtractor={(item, index) => item.configName + index}
+                        renderItem={({ item, index }) => (
+                            <ConnectionItem item={item} index={index} />
+                        )}
+                        removeClippedSubviews={false}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
 
-            {apiValues.length === 0 && (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name="cloud-offline-outline" size={64} color={color.text._700} />
-                    <Text
-                        style={{
-                            color: color.text._400,
-                            fontStyle: 'italic',
-                            marginTop: spacing.l,
-                        }}>
-                        No Connections Added
-                    </Text>
-                </View>
-            )}
+                {apiValues.length === 0 && (
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                        <AstryxEmptyState
+                            icon="cloud-off"
+                            title="No connections added"
+                            description="Add an API connection to make hosted models available."
+                            actionLabel="Add connection"
+                            onAction={() =>
+                                router.push('/screens/ConnectionsManagerScreen/AddConnection')
+                            }
+                        />
+                    </View>
+                )}
 
-            <ThemedButton
-                buttonStyle={{
-                    marginHorizontal: spacing.xl,
-                }}
-                onPress={() => router.push('/screens/ConnectionsManagerScreen/AddConnection')}
-                label="Add Connection"
-            />
-        </SafeAreaView>
+                {apiValues.length > 0 && (
+                    <AstryxButton
+                        style={{ marginHorizontal: tokens.spacing.xl }}
+                        onPress={() =>
+                            router.push('/screens/ConnectionsManagerScreen/AddConnection')
+                        }
+                        label="Add connection"
+                        variant="primary"
+                    />
+                )}
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

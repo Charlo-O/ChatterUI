@@ -1,119 +1,115 @@
 import { AntDesign, MaterialIcons } from '@expo/vector-icons'
-import { ReactNode, useState } from 'react'
-import { PressableProps, TextStyle, Pressable, ViewStyle, StyleSheet, Animated } from 'react-native'
+import React, { ReactNode } from 'react'
+import {
+    ActivityIndicator,
+    Pressable,
+    PressableProps,
+    StyleProp,
+    StyleSheet,
+    TextStyle,
+    ViewStyle,
+} from 'react-native'
 
 import TText from '@components/text/TText'
 import { Theme } from '@lib/theme/ThemeManager'
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'critical' | 'disabled'
+/** Astryx action variants plus aliases retained for existing callers. */
+export type ButtonVariant =
+    | 'primary'
+    | 'secondary'
+    | 'ghost'
+    | 'destructive'
+    | 'tertiary'
+    | 'critical'
+    | 'disabled'
 
-export interface ThemedButtonProps extends Omit<PressableProps, 'style'> {
+export type ButtonSize = 'sm' | 'md' | 'lg'
+
+export interface ThemedButtonProps extends Omit<PressableProps, 'style' | 'disabled'> {
     labelStyle?: TextStyle
     label?: string
-    buttonStyle?: ViewStyle
+    /** Existing prop retained for source compatibility. */
+    buttonStyle?: StyleProp<ViewStyle>
+    /** `style` is the Astryx/native spelling; both styles are merged. */
+    style?: StyleProp<ViewStyle>
     opacity?: number
     variant?: ButtonVariant
+    size?: ButtonSize
     iconName?: keyof typeof AntDesign.glyphMap
     iconSize?: number
     iconStyle?: TextStyle
     icon?: ReactNode
+    loading?: boolean
+    disabled?: boolean
+    /** Allows a caller to keep the pressed treatment for a controlled preview. */
+    pressed?: boolean
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+type ResolvedVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
 
-type ButtonTheme = {
-    buttonStyle: ViewStyle
-    labelStyle: TextStyle
-}
-
-const useButtonTheme = (variant: ButtonVariant): ButtonTheme => {
-    const theme = Theme.useTheme()
-    //TODO:
-    // Have a lightness checker to figure out whether or not to use light or dark text
+const resolveVariant = (
+    variant: ButtonVariant
+): {
+    variant: ResolvedVariant
+    forceDisabled: boolean
+} => {
     switch (variant) {
+        case 'tertiary':
+            return { variant: 'ghost', forceDisabled: false }
+        case 'critical':
+            return { variant: 'destructive', forceDisabled: false }
+        case 'disabled':
+            return { variant: 'secondary', forceDisabled: true }
         default:
+            return { variant: variant, forceDisabled: false }
+    }
+}
+
+const getPalette = (
+    tokens: ReturnType<typeof Theme.useTheme>['astryx'],
+    variant: ResolvedVariant,
+    disabled: boolean
+) => {
+    // The neutral Astryx gallery uses a dark accent in light mode and a light
+    // accent in dark mode. A neutral surface stays readable for legacy themes.
+    const dark = tokens.dark
+    const destructiveBackground = dark ? 'rgba(255, 152, 144, 0.24)' : '#FFC4BE'
+    const destructiveText = dark ? '#FFC4BE' : '#76000C'
+    const secondaryBackground = dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'
+    const secondaryText = tokens.text.primary
+
+    if (disabled) {
+        return {
+            backgroundColor: tokens.background.muted,
+            borderColor: 'transparent',
+            color: tokens.text.disabled,
+        }
+    }
+
+    switch (variant) {
         case 'primary':
             return {
-                buttonStyle: {
-                    backgroundColor: theme.color.primary._500,
-                    borderColor: theme.color.primary._500,
-                    borderWidth: theme.borderWidth.s,
-                    minHeight: 40,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.xl2,
-                },
-                labelStyle: {
-                    textAlign: 'center',
-                    color: theme.color.text._900,
-                    fontWeight: '600',
-                },
+                backgroundColor: tokens.accent.primary,
+                borderColor: 'transparent',
+                color: tokens.accent.onPrimary,
             }
         case 'secondary':
             return {
-                buttonStyle: {
-                    backgroundColor: theme.color.neutral._200,
-                    borderColor: theme.color.neutral._400,
-                    borderWidth: theme.borderWidth.s,
-                    minHeight: 40,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.xl2,
-                },
-                labelStyle: {
-                    textAlign: 'center',
-                    color: theme.color.text._100,
-                    fontWeight: '600',
-                },
+                backgroundColor: secondaryBackground,
+                borderColor: 'transparent',
+                color: secondaryText,
             }
-        case 'tertiary':
+        case 'ghost':
             return {
-                buttonStyle: {
-                    minWidth: 36,
-                    minHeight: 36,
-                    padding: theme.spacing.s,
-                    borderRadius: theme.borderRadius.xl2,
-                    borderWidth: 0,
-                    borderColor: 'rgba(0, 0, 0, 0)',
-                },
-                labelStyle: {
-                    textAlign: 'center',
-                    color: theme.color.text._200,
-                },
+                backgroundColor: 'transparent',
+                borderColor: 'transparent',
+                color: secondaryText,
             }
-        case 'critical':
+        case 'destructive':
             return {
-                buttonStyle: {
-                    backgroundColor: theme.color.neutral._200,
-                    borderColor: theme.color.error._300,
-                    borderWidth: theme.borderWidth.s,
-                    minHeight: 40,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.xl2,
-                },
-                labelStyle: {
-                    textAlign: 'center',
-                    color: theme.color.error._300,
-                    fontWeight: '600',
-                },
-            }
-        case 'disabled':
-            return {
-                buttonStyle: {
-                    backgroundColor: theme.color.neutral._300,
-                    borderColor: theme.color.neutral._400,
-                    borderWidth: theme.borderWidth.s,
-                    minHeight: 40,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.xl,
-                    borderRadius: theme.borderRadius.xl2,
-                    opacity: 0.55,
-                },
-                labelStyle: {
-                    textAlign: 'center',
-                    color: theme.color.text._600,
-                },
+                backgroundColor: destructiveBackground,
+                borderColor: 'transparent',
+                color: destructiveText,
             }
     }
 }
@@ -122,75 +118,114 @@ const ThemedButton: React.FC<ThemedButtonProps> = ({
     labelStyle,
     label,
     buttonStyle,
+    style,
     children,
+    onPress,
     onPressIn,
-    opacity = 1,
     onPressOut,
+    opacity = 1,
     variant = 'primary',
-    iconName = undefined,
-    iconSize = 20,
-    iconStyle = undefined,
-    icon = undefined,
+    size = 'md',
+    iconName,
+    iconSize = 16,
+    iconStyle,
+    icon,
+    loading = false,
+    disabled = false,
+    pressed: controlledPressed,
+    accessibilityLabel,
+    accessibilityState,
     ...rest
 }) => {
-    const [animOpacity] = useState(() => new Animated.Value(1))
-    const theme = useButtonTheme(variant)
-    const handlePressIn = () => {
-        animOpacity.setValue(0.72)
-    }
-
-    const handlePressOut = () => {
-        Animated.timing(animOpacity, {
-            toValue: 1,
-            duration: 140,
-            useNativeDriver: true,
-        }).start()
-    }
+    const theme = Theme.useTheme()
+    const tokens = theme.astryx
+    const resolved = resolveVariant(variant)
+    const isDisabled = disabled || loading || resolved.forceDisabled
+    const palette = getPalette(tokens, resolved.variant, isDisabled)
+    // Pressable also permits a render-function child. ThemedButton owns its
+    // content layout, so leave that advanced child form untouched rather than
+    // trying to pass a function through Text.
+    const content = label ?? (typeof children === 'function' ? undefined : children)
+    const resolvedAccessibilityLabel =
+        accessibilityLabel ??
+        (typeof label === 'string' ? label : typeof children === 'string' ? children : undefined)
 
     return (
-        <AnimatedPressable
-            disabled={variant === 'disabled'}
-            onPressIn={(event) => {
-                handlePressIn()
-                if (onPressIn) onPressIn(event)
-            }}
-            onPressOut={(event) => {
-                handlePressOut()
-                if (onPressOut) onPressOut(event)
-            }}
+        <Pressable
             {...rest}
-            style={StyleSheet.flatten([
-                theme.buttonStyle,
-                {
-                    flexDirection: 'row',
-                    columnGap: 8,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    opacity: animOpacity,
-                },
-                buttonStyle,
-            ])}>
-            {!icon &&
-                iconName &&
-                (iconName !== 'search' ? (
-                    <AntDesign
-                        name={iconName}
-                        size={iconSize}
-                        style={iconStyle}
-                        color={theme.labelStyle.color}
-                    />
-                ) : (
-                    <MaterialIcons
-                        name={'search'}
-                        size={iconSize}
-                        style={iconStyle}
-                        color={theme.labelStyle.color}
-                    />
-                ))}
-            {icon}
-            {label && <TText style={[theme.labelStyle, labelStyle]}>{label}</TText>}
-        </AnimatedPressable>
+            disabled={isDisabled}
+            onPress={onPress}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            accessibilityRole={rest.accessibilityRole ?? 'button'}
+            accessibilityLabel={resolvedAccessibilityLabel}
+            accessibilityState={{
+                ...(accessibilityState ?? {}),
+                disabled: isDisabled,
+                busy: loading,
+            }}
+            style={({ pressed: nativePressed }) => {
+                const isPressed = controlledPressed ?? nativePressed
+                const minHeight = tokens.size[size]
+                return [
+                    styles.button,
+                    {
+                        minHeight: minHeight,
+                        paddingHorizontal: size === 'lg' ? tokens.spacing.lg : tokens.spacing.md,
+                        backgroundColor: palette.backgroundColor,
+                        borderColor: palette.borderColor,
+                        borderRadius: tokens.radius.full,
+                        opacity: isDisabled ? 0.48 : isPressed ? 0.72 * opacity : opacity,
+                    },
+                    buttonStyle,
+                    style,
+                ]
+            }}>
+            {loading ? (
+                <ActivityIndicator size="small" color={palette.color} />
+            ) : (
+                (icon ??
+                (iconName ? (
+                    iconName === 'search' ? (
+                        <MaterialIcons
+                            name="search"
+                            size={iconSize}
+                            style={iconStyle}
+                            color={palette.color}
+                        />
+                    ) : (
+                        <AntDesign
+                            name={iconName}
+                            size={iconSize}
+                            style={iconStyle}
+                            color={palette.color}
+                        />
+                    )
+                ) : null))
+            )}
+            {content !== undefined && content !== null && (
+                <TText style={[styles.label, { color: palette.color }, labelStyle]}>
+                    {content as React.ReactNode}
+                </TText>
+            )}
+        </Pressable>
     )
 }
+
+const styles = StyleSheet.create({
+    button: {
+        alignItems: 'center',
+        borderWidth: 0,
+        flexDirection: 'row',
+        gap: 8,
+        justifyContent: 'center',
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '500',
+        lineHeight: 20,
+        textAlign: 'center',
+    },
+})
 
 export default ThemedButton

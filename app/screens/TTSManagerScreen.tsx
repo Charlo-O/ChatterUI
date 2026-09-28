@@ -9,7 +9,7 @@ import ThemedSlider from '@components/input/ThemedSlider'
 import ThemedSwitch from '@components/input/ThemedSwitch'
 import ThemedTextInput from '@components/input/ThemedTextInput'
 import SectionTitle from '@components/text/SectionTitle'
-import HeaderTitle from '@components/views/HeaderTitle'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import { Logger } from '@lib/state/Logger'
 import { useTTS } from '@lib/state/TTS'
 import { Theme } from '@lib/theme/ThemeManager'
@@ -43,14 +43,9 @@ const TTSManagerScreen = () => {
     }
 
     return (
-        <KeyboardAwareScrollView
-            style={{
-                marginVertical: 16,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-            }}
-            contentContainerStyle={{ rowGap: 8 }}>
-            <HeaderTitle title="TTS" />
+        <AstryxScreen title="TTS" subtitle="Text-to-speech controls">
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ rowGap: 8, padding: 20, paddingBottom: 32 }}>
             <SectionTitle>Settings</SectionTitle>
 
             <ThemedSwitch
@@ -109,6 +104,7 @@ const TTSManagerScreen = () => {
                         onChangeValue={(item) => setLang(item)}
                     />
                     <ThemedButton
+                        accessibilityLabel="Reload voices"
                         iconName="reload"
                         iconSize={20}
                         onPress={() => getVoices()}
@@ -159,7 +155,8 @@ const TTSManagerScreen = () => {
                     }}
                 />
             </View>
-        </KeyboardAwareScrollView>
+            </KeyboardAwareScrollView>
+        </AstryxScreen>
     )
 }
 

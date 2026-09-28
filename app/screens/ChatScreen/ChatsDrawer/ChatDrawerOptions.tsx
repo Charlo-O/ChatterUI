@@ -125,6 +125,7 @@ const ChatEditPopup: React.FC<ChatEditPopupProps> = ({ item, children, onPress }
                 defaultValue={item.name}
             />
             <ContextMenu
+                triggerAccessibilityLabel="Chat actions"
                 placement="right"
                 longPress
                 onPress={onPress}

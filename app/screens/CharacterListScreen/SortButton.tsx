@@ -1,6 +1,6 @@
 import { AntDesign } from '@expo/vector-icons'
 import React from 'react'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { Pressable, StyleSheet } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
 import TText from '@components/text/TText'
@@ -28,12 +28,18 @@ const SortButton: React.FC<SortButtonProps> = ({ type, label }) => {
     const isCurrent = type === searchType
 
     return (
-        <TouchableOpacity
+        <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isCurrent }}
+            accessibilityLabel={`${label} sort`}
             onPress={() => {
                 setSearchOrder(searchType !== type || searchOrder === 'asc' ? 'desc' : 'asc')
                 setSearchType(type)
             }}
-            style={isCurrent ? styles.sortButtonActive : styles.sortButton}>
+            style={({ pressed }) => [
+                isCurrent ? styles.sortButtonActive : styles.sortButton,
+                { opacity: pressed ? 0.72 : 1 },
+            ]}>
             {isCurrent && (
                 <AntDesign
                     size={14}
@@ -49,7 +55,7 @@ const SortButton: React.FC<SortButtonProps> = ({ type, label }) => {
             <TText style={isCurrent ? styles.sortButtonTextActive : styles.sortButtonText}>
                 {label}
             </TText>
-        </TouchableOpacity>
+        </Pressable>
     )
 }
 
@@ -65,7 +71,9 @@ const useStyles = () => {
             paddingHorizontal: spacing.l,
             paddingVertical: spacing.sm,
             backgroundColor: color.neutral._300,
-            borderRadius: borderRadius.xl2,
+            borderRadius: borderRadius.m,
+            borderWidth: 1,
+            borderColor: color.neutral._400,
         },
 
         sortButtonActive: {
@@ -74,7 +82,9 @@ const useStyles = () => {
             paddingHorizontal: spacing.l,
             paddingVertical: spacing.sm,
             backgroundColor: color.primary._500,
-            borderRadius: borderRadius.xl2,
+            borderRadius: borderRadius.m,
+            borderWidth: 1,
+            borderColor: color.primary._500,
         },
 
         sortButtonText: {

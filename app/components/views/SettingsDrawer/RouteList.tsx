@@ -1,12 +1,13 @@
 import { AntDesign } from '@expo/vector-icons'
 import { Href, useRouter } from 'expo-router'
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { FlatList, Pressable, StyleSheet, View } from 'react-native'
 import { useMMKVBoolean } from 'react-native-mmkv'
 
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
 import TText from '@components/text/TText'
+import Drawer from '@components/views/Drawer'
 import { AppSettings } from '@lib/constants/GlobalValues'
 import { useAppMode } from '@lib/state/AppMode'
-import { Theme } from '@lib/theme/ThemeManager'
 
 type ButtonData = {
     name: string
@@ -22,11 +23,15 @@ type DrawerButtonProps = {
 const DrawerButton = ({ item, index }: DrawerButtonProps) => {
     const styles = useStyles()
     const router = useRouter()
+    const setShow = Drawer.useDrawerStore((state) => state.setShow)
     return (
         <View key={index}>
-            <TouchableOpacity
-                style={styles.largeButton}
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={item.name}
+                style={({ pressed }) => [styles.largeButton, { opacity: pressed ? 0.72 : 1 }]}
                 onPress={() => {
+                    setShow(Drawer.ID.SETTINGS, false)
                     router.push(item.path)
                 }}>
                 <AntDesign
@@ -35,7 +40,7 @@ const DrawerButton = ({ item, index }: DrawerButtonProps) => {
                     color={styles.largeButtonText.color}
                 />
                 <TText style={styles.largeButtonText}>{item.name}</TText>
-            </TouchableOpacity>
+            </Pressable>
         </View>
     )
 }
@@ -58,21 +63,21 @@ const RouteList = () => {
 export default RouteList
 
 const useStyles = () => {
-    const { color, spacing, fontSize, borderRadius } = Theme.useTheme()
+    const tokens = useAstryxTokens()
     return StyleSheet.create({
         largeButtonText: {
-            fontSize: fontSize.m,
-            color: color.text._300,
+            fontSize: 14,
+            color: tokens.text.secondary,
             fontWeight: '500',
         },
 
         largeButton: {
-            minHeight: 46,
-            paddingHorizontal: spacing.l,
+            minHeight: 40,
+            paddingHorizontal: tokens.spacing.lg,
             flexDirection: 'row',
             alignItems: 'center',
-            columnGap: spacing.l,
-            borderRadius: borderRadius.m,
+            columnGap: tokens.spacing.lg,
+            borderRadius: tokens.radius.inner,
         },
     })
 }

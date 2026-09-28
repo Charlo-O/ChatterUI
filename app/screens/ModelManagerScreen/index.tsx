@@ -5,13 +5,11 @@ import Animated, { Easing, SlideInLeft, SlideOutLeft } from 'react-native-reanim
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
-import ThemedButton from '@components/buttons/ThemedButton'
+import { useAstryxTokens } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import SectionTitle from '@components/text/SectionTitle'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import { Llama } from '@lib/engine/Local/LlamaLocal'
 import { Model } from '@lib/engine/Local/Model'
-import { Theme } from '@lib/theme/ThemeManager'
 
 import ModelEmpty from './ModelEmpty'
 import ModelInfoHeader from './ModelInfoHeader'
@@ -20,7 +18,7 @@ import ModelNewMenu from './ModelNewMenu'
 import ModelSettings from './ModelSettings'
 
 const ModelManagerScreen = () => {
-    const { spacing } = Theme.useTheme()
+    const tokens = useAstryxTokens()
 
     const { data: mmprojLinks } = useLiveQuery(Model.getMMPROJLinks())
 
@@ -52,87 +50,85 @@ const ModelManagerScreen = () => {
     ]
 
     return (
-        <SafeAreaView
-            edges={['bottom']}
-            style={{
-                paddingTop: spacing.xl,
-                paddingHorizontal: spacing.xl,
-                paddingBottom: spacing.xl2,
-                flex: 1,
-            }}>
-            <HeaderTitle title={showSettings ? 'Model Settings' : 'Models'} />
-            <HeaderButton
-                headerRight={() =>
-                    !showSettings && (
-                        <ModelNewMenu
+        <AstryxScreen
+            title={showSettings ? 'Model Settings' : 'Models'}
+            subtitle={showSettings ? 'Local model runtime' : 'Local and multimodal models'}
+            actions={
+                !showSettings ? (
+                    <ModelNewMenu
+                        modelImporting={modelImporting}
+                        setModelImporting={setModelImporting}
+                    />
+                ) : undefined
+            }
+            onPrimary={() => setShowSettings((value) => !value)}
+            primaryLabel={showSettings ? 'Back to models' : 'Settings'}
+            primaryIcon={showSettings ? 'arrow-back' : 'settings'}>
+            <SafeAreaView
+                edges={['bottom']}
+                style={{
+                    paddingHorizontal: tokens.spacing.xl,
+                    paddingBottom: tokens.spacing.xxl,
+                    flex: 1,
+                }}>
+                {!showSettings && (
+                    <Animated.View
+                        style={{ flex: 1 }}
+                        entering={SlideInLeft.easing(Easing.inOut(Easing.cubic))}
+                        exiting={SlideOutLeft.easing(Easing.inOut(Easing.cubic))}>
+                        <ModelInfoHeader
                             modelImporting={modelImporting}
-                            setModelImporting={setModelImporting}
+                            modelLoading={modelLoading}
+                            modelListLength={modelList.length}
+                            modelUpdatedAt={modelUpdatedAt}
                         />
-                    )
-                }
-            />
 
-            {!showSettings && (
-                <Animated.View
-                    style={{ flex: 1 }}
-                    entering={SlideInLeft.easing(Easing.inOut(Easing.cubic))}
-                    exiting={SlideOutLeft.easing(Easing.inOut(Easing.cubic))}>
-                    <ModelInfoHeader
+                        <SectionList
+                            style={{
+                                marginTop: tokens.spacing.lg,
+                                flex: 1,
+                            }}
+                            sections={data}
+                            renderItem={({ item }) => (
+                                <ModelItem
+                                    item={item}
+                                    mmprojList={mmprojList}
+                                    modelLoading={modelLoading}
+                                    setModelLoading={(b: boolean) => {
+                                        if (b) setloadProgress(0)
+                                        setModelLoading(b)
+                                    }}
+                                    modelImporting={modelImporting}
+                                />
+                            )}
+                            renderSectionHeader={({ section: { title, data } }) => {
+                                if (mmprojList.length > 0)
+                                    return (
+                                        <SectionTitle
+                                            visible={data.length > 0}
+                                            style={{ marginBottom: tokens.spacing.lg }}>
+                                            {title}
+                                        </SectionTitle>
+                                    )
+                                return <></>
+                            }}
+                            keyExtractor={(item) => item.id.toString()}
+                            removeClippedSubviews={false}
+                            showsVerticalScrollIndicator={false}
+                            ListEmptyComponent={() => <ModelEmpty />}
+                        />
+                    </Animated.View>
+                )}
+
+                {showSettings && (
+                    <ModelSettings
                         modelImporting={modelImporting}
                         modelLoading={modelLoading}
-                        modelListLength={modelList.length}
-                        modelUpdatedAt={modelUpdatedAt}
+                        exit={() => setShowSettings(false)}
                     />
-
-                    <SectionList
-                        style={{
-                            marginTop: 16,
-                            flex: 1,
-                        }}
-                        sections={data}
-                        renderItem={({ item, index }) => (
-                            <ModelItem
-                                item={item}
-                                mmprojList={mmprojList}
-                                modelLoading={modelLoading}
-                                setModelLoading={(b: boolean) => {
-                                    if (b) setloadProgress(0)
-                                    setModelLoading(b)
-                                }}
-                                modelImporting={modelImporting}
-                            />
-                        )}
-                        renderSectionHeader={({ section: { title, data } }) => {
-                            if (mmprojList.length > 0)
-                                return (
-                                    <SectionTitle
-                                        visible={data.length > 0}
-                                        style={{ marginBottom: 16 }}>
-                                        {title}
-                                    </SectionTitle>
-                                )
-                            return <></>
-                        }}
-                        keyExtractor={(item) => item.id.toString()}
-                        removeClippedSubviews={false}
-                        showsVerticalScrollIndicator={false}
-                        ListEmptyComponent={() => <ModelEmpty />}
-                    />
-                </Animated.View>
-            )}
-
-            {showSettings && (
-                <ModelSettings
-                    modelImporting={modelImporting}
-                    modelLoading={modelLoading}
-                    exit={() => setShowSettings(false)}
-                />
-            )}
-            <ThemedButton
-                label={showSettings ? 'Back To Models' : 'Show Settings'}
-                onPress={() => setShowSettings(!showSettings)}
-            />
-        </SafeAreaView>
+                )}
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 

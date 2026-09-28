@@ -179,7 +179,7 @@ export const AppSettingsDefault: Record<AppSettings, boolean> = {
     [AppSettings.SaveScrollPosition]: false,
     [AppSettings.AutoGenerateTitle]: true,
     [AppSettings.WideChatMode]: false,
-    [AppSettings.AlternatingChatMode]: false,
+    [AppSettings.AlternatingChatMode]: true,
     [AppSettings.KeepAwake]: true,
 }
 

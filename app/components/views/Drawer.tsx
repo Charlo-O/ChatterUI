@@ -15,10 +15,12 @@ import Animated, {
     SlideOutRight,
     SlideOutUp,
 } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
 
 import ThemedButton, { ThemedButtonProps } from '@components/buttons/ThemedButton'
+import GlassSurface from '@components/liquid/GlassSurface'
 import { Theme } from '@lib/theme/ThemeManager'
 
 import FadeBackrop from './FadeBackdrop'
@@ -88,6 +90,7 @@ namespace Drawer {
         children = undefined,
     }) => {
         const styles = useStyles()
+        const insets = useSafeAreaInsets()
         const { setShow, show } = useDrawerStore(
             useShallow((state) => ({
                 setShow: state.setShow,
@@ -112,12 +115,18 @@ namespace Drawer {
         if (!show) return
 
         return (
-            <View style={styles.absolute}>
+            <View style={styles.absolute} accessibilityViewIsModal>
                 <FadeBackrop handleOverlayClick={handleOverlayClick} />
                 <Animated.View
-                    style={{ ...styles.drawer, ...drawerStyle }}
+                    style={{
+                        ...styles.drawer,
+                        ...drawerStyle,
+                        paddingTop: (typeof drawerStyle.paddingTop === 'number' ? drawerStyle.paddingTop : 16) + insets.top,
+                        paddingBottom: insets.bottom + 16,
+                    }}
                     entering={animationIn[direction]}
                     exiting={animationOut[direction]}>
+                    <GlassSurface pointerEvents="none" style={StyleSheet.absoluteFill} />
                     {children}
                 </Animated.View>
             </View>
@@ -138,8 +147,9 @@ namespace Drawer {
         )
         return (
             <ThemedButton
+                accessibilityLabel={show ? 'Close navigation' : 'Open navigation'}
                 iconSize={24}
-                onPressIn={() => {
+                onPress={() => {
                     setShow(drawerId, !show)
                 }}
                 variant="tertiary"
@@ -198,7 +208,7 @@ namespace Drawer {
 export default Drawer
 
 const useStyles = () => {
-    const { color } = Theme.useTheme()
+    const { color, astryx } = Theme.useTheme()
     return StyleSheet.create({
         absolute: {
             position: 'absolute',
@@ -214,14 +224,20 @@ const useStyles = () => {
         },
 
         drawer: {
-            backgroundColor: color.neutral._100,
+            backgroundColor: 'transparent',
             shadowColor: color.shadow,
             width: '80%',
+            maxWidth: 420,
             height: '100%',
-            borderRightColor: color.neutral._400,
-            borderRightWidth: 1,
-            elevation: 12,
+            borderRadius: 28,
+            overflow: 'hidden',
+            borderRightColor: astryx.border.default,
+            borderWidth: 1,
+            borderColor: astryx.border.default,
+            elevation: 16,
+            zIndex: 2,
             position: 'absolute',
+            paddingTop: 8,
         },
     })
 }

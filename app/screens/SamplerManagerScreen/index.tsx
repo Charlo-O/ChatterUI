@@ -9,10 +9,10 @@ import HorizontalSelector from '@components/input/HorizontalSelector'
 import ThemedCheckbox from '@components/input/ThemedCheckbox'
 import ThemedSlider from '@components/input/ThemedSlider'
 import ThemedTextInput from '@components/input/ThemedTextInput'
+import { AstryxEmptyState } from '@components/astryx/AstryxPrimitives'
+import { AstryxScreen } from '@components/astryx/AstryxShell'
 import Alert from '@components/views/Alert'
 import ContextMenu from '@components/views/ContextMenu'
-import HeaderButton from '@components/views/HeaderButton'
-import HeaderTitle from '@components/views/HeaderTitle'
 import InputSheet from '@components/views/InputSheet'
 import { SamplerID, Samplers } from '@lib/constants/SamplerData'
 import { APIConfiguration, APISampler } from '@lib/engine/API/APIBuilder.types'
@@ -99,6 +99,7 @@ const SamplerManagerScreen = () => {
 
     const headerRight = () => (
         <ContextMenu
+            triggerAccessibilityLabel="Sampler actions"
             triggerIcon="setting"
             triggerIconSize={24}
             placement="bottom"
@@ -140,7 +141,11 @@ const SamplerManagerScreen = () => {
     )
 
     return (
-        <SafeAreaView edges={['bottom']} style={{ flex: 1 }} key={currentConfig.name}>
+        <AstryxScreen
+            title="Samplers"
+            subtitle="Generation parameters"
+            actions={headerRight()}>
+            <SafeAreaView edges={['bottom']} style={{ flex: 1 }} key={currentConfig.name}>
             <InputSheet
                 title="New Sampler Preset"
                 visible={showNewSampler}
@@ -159,9 +164,6 @@ const SamplerManagerScreen = () => {
                     addSamplerConfig({ name: text, data: currentConfig.data })
                 }}
             />
-
-            <HeaderTitle title="Samplers" />
-            <HeaderButton headerRight={headerRight} />
 
             <DropdownSheet
                 containerStyle={{ marginHorizontal: spacing.xl, paddingVertical: spacing.m }}
@@ -281,22 +283,18 @@ const SamplerManagerScreen = () => {
                 </KeyboardAwareScrollView>
             )}
             {samplerList.length === 0 && (
-                <View
-                    style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        rowGap: 12,
-                    }}>
-                    <Text style={styles.noSamplersText}>No Samplers to Configure</Text>
-                    {appMode === 'remote' && (
-                        <Text style={styles.noSamplersText}>
-                            {`You probably haven't added an API connection yet`}
-                        </Text>
-                    )}
-                </View>
+                <AstryxEmptyState
+                    icon="tune"
+                    title="No samplers to configure"
+                    description={
+                        appMode === 'remote'
+                            ? "Add an API connection before configuring sampler parameters."
+                            : 'This model does not expose configurable sampler parameters.'
+                    }
+                />
             )}
-        </SafeAreaView>
+            </SafeAreaView>
+        </AstryxScreen>
     )
 }
 
